@@ -77,7 +77,7 @@ uma distribuição mais orgânica e visualmente agradável.
 
 Foi utilizado o teste de intersecção *AABB-plano* para detectar a colisão do adversário 
 com o chão, a partir do momento em que o mesmo surge na cena do game. Para verificar se 
-o ataque do jogador atingiu o adversário, emprego-se o teste *raio-AABB*, com o raio partindo 
+o ataque do jogador atingiu o adversário, empregou-se o teste *raio-AABB*, com o raio partindo 
 do ponto central da câmera e se estendendo na direção do vetor de visão.Além disso, foram 
 aplicados testes de intersecção *ponto-AABB* e *AABB-AABB* para restringir o movimento do jogador 
 dentro do mapa e para garantir as colisões com as árvores e com o adversário.
