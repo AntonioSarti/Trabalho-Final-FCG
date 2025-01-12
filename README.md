@@ -138,3 +138,14 @@ Ao derrotar o chefe da fase, o mesmo aparece caido ao plano do chão.
 Se o jogador sofrer tantos danos que sua vida atinja 0 HP, então ele será derrotado!
 
 ![Defeat](fcg/data/imagens/img04.jpeg)
+
+
+## Vídeo YouTube
+
+Acesse através do link: <https://youtu.be/yRMEBvqx1fE> 
+
+
+
+
+
+
