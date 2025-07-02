@@ -4,7 +4,7 @@ O Trabalho Final da disciplina será desenvolver um jogo 3D de corrida de carros
 1. Abra um terminal (Prompt de comando);
 2. No terminal, vá para o diretório onde o repositório foi clonado (`git clone`);
    
-      No terminal digite:
+      E digite:
       ```
       cmake -G "MinGW Makefiles" -B build
       ```
