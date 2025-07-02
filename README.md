@@ -2,9 +2,9 @@
 O Trabalho Final da disciplina será desenvolver um jogo 3D de corrida de carros utilizando C++ e OpenGL. O projeto incluirá a criação de uma pista tridimensional, veículos controláveis, cenário com obstáculos e elementos visuais como texturas, iluminação e câmera dinâmica. O jogador poderá controlar um carro em tempo real, com sistema de voltas e cronometragem. A aplicação servirá para demonstrar na prática os conceitos estudados em aula.
 ## Como compilar o projeto com o CMake (Windows)
 1. Abra um terminal (Prompt de comando);
-2. No terminal, vá para o diretório onde o repositório foi clonado (`git clone`) e, então, digite:;
+2. No terminal, vá para o diretório onde o repositório foi clonado (`git clone`);
    
-      terminal:
+      No terminal digite:
       ```
       cmake -G "MinGW Makefiles" -B build
       ```
