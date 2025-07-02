@@ -3,3 +3,16 @@ O Trabalho Final da disciplina será desenvolver um jogo 3D de corrida de carros
 # Integrantes
 - Antonio Carlos G. Sarti 
 - Leandro Reis Boniatti
+# Tabela das atividades desenvolvidas/em desenvolvimento
+| Critérios Técnicos | Concluído (Sim/Não) | Desenvolvidos por |
+| :--- | :---: | :---: |
+| Malhas poligonais complexas                         | Sim | Antonio |
+| Transformações geométricas controladas pelo usuário | Sim | Antonio |
+| Câmera livre e câmera look-at                       | Sim | Antonio |           
+| Instâncias de objetos                               | Sim | Antonio |           
+| Três tipos de testes de intersecção                 | Não | - |           
+| Modelos de Iluminação Difusa e Blinn-Phong          | Não | - |   
+| Modelos de Interpolação de Phong e Gouraud          | Não | - |
+| Mapeamento de texturas em todos os objetos          | Não | - |
+| Movimentação com curva Bézier cúbica                | Não | - |
+| Animações baseadas no tempo ($\Delta t$)            | Sim | Antonio |
