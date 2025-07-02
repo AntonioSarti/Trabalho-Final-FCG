@@ -6,11 +6,13 @@ O Trabalho Final da disciplina será desenvolver um jogo 3D de corrida de carros
    
       terminal:
       ```
-      > cmake -G "MinGW Makefiles" -B build
-
-      > cd build
-
-      > run.exe
+      cmake -G "MinGW Makefiles" -B build
+      ```
+      ```
+      cd build
+      ```
+      ```
+      run.exe
       ```
 # Integrantes
 - Antonio Carlos G. Sarti 
