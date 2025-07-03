@@ -19,7 +19,7 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
-#define PLANE 0
+#define TRACK 0
 #define CAR   1
 
 uniform int object_id;
@@ -71,7 +71,7 @@ void main()
 
     
     
-    if ( object_id == 0 ) //PLANE
+    if ( object_id == 0 ) //TRACK
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
@@ -100,9 +100,9 @@ void main()
 
     vec3 Kd0;
 
-    if (object_id == 0) //PLANE
+    if (object_id == 0) //TRACK
         Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
-    else if (object_id == 1) // CAR
+    else if (object_id == 1) //CAR
         Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
     else
         Kd0 = vec3(1.0, 1.0, 1.0); // fallback branco

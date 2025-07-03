@@ -197,7 +197,7 @@ float TrackPositionY = 0.0f;
 float TrackPositionZ = 0.0f;
 
 // Escala do plano
-float g_PlaneScale = 1.0f;
+float g_PlaneScale = 5.0f;
 
 // Posição do Carro
 glm::vec4 g_CarPos;
@@ -366,10 +366,10 @@ int main(int argc, char* argv[])
 
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel planemodel("../data/model.obj");
-    ScalePlaneModelAndTexCoords(&planemodel);
-    ComputeNormals(&planemodel);
-    BuildTrianglesAndAddToVirtualScene(&planemodel);
+    ObjModel trackmodel("../data/track.obj");
+    ScalePlaneModelAndTexCoords(&trackmodel);
+    ComputeNormals(&trackmodel);
+    BuildTrianglesAndAddToVirtualScene(&trackmodel);
 
     ObjModel carmodel("../data/car.obj");
     ComputeNormals(&carmodel);
@@ -528,17 +528,17 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(g_view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(g_projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
-        #define PLANE 0
+        #define TRACK 0
         #define CAR   1
         #define WALL  2
 
         // Desenhamos o plano do chão
         //model = Matrix_Translate(0.0f,-1.1f,0.0f);
         model = Matrix_Translate(TrackPositionX, TrackPositionY, TrackPositionZ);
-        model = model * Matrix_Scale(5.0f, 1.0f, 5.0f); // Aumenta a pista lateral e longitudinalmente
+        model = model * Matrix_Scale(1.0f, 1.0f, 1.0f); // Aumenta a pista lateral e longitudinalmente
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, PLANE);
-        DrawVirtualObject("the_plane");
+        glUniform1i(g_object_id_uniform, TRACK);
+        DrawVirtualObject("the_track");
 
         for (const auto& pos : wall_positions)
         {
@@ -704,8 +704,8 @@ void LoadTextureImage(const char* filename)
     glGenSamplers(1, &sampler_id);
 
     // Veja slides 95-96 do documento Aula_20_Mapeamento_de_Texturas.pdf
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // Parâmetros de amostragem da textura.
     glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
