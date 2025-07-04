@@ -28,5 +28,5 @@ O Trabalho Final da disciplina será desenvolver um jogo 3D de corrida de carros
 | Modelos de Iluminação Difusa e Blinn-Phong          | Não | - |   
 | Modelos de Interpolação de Phong e Gouraud          | Não | - |
 | Mapeamento de texturas em todos os objetos          | Não | - |
-| Movimentação com curva Bézier cúbica                | Não | - |
+| Movimentação com curva Bézier cúbica                | Sim | Antonio |
 | Animações baseadas no tempo ($\Delta t$)            | Sim | Antonio |
