@@ -27,6 +27,6 @@ O Trabalho Final da disciplina será desenvolver um jogo 3D de corrida de carros
 | Três tipos de testes de intersecção                 | Não | - |           
 | Modelos de Iluminação Difusa e Blinn-Phong          | Não | - |   
 | Modelos de Interpolação de Phong e Gouraud          | Não | - |
-| Mapeamento de texturas em todos os objetos          | Não | - |
+| Mapeamento de texturas em todos os objetos          | Sim | Antonio |
 | Movimentação com curva Bézier cúbica                | Sim | Antonio |
 | Animações baseadas no tempo ($\Delta t$)            | Sim | Antonio |
