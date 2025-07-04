@@ -48,6 +48,7 @@
 #include "utils.h"
 #include "matrices.h"
 
+
 const float TRACK_MIN_X = -100.0f;
 const float TRACK_MAX_X =  100.0f;
 const float TRACK_MIN_Z = -5.0f;
@@ -196,8 +197,13 @@ float TrackPositionX = 0.0f;
 float TrackPositionY = 0.0f;
 float TrackPositionZ = 0.0f;
 
+// Posição dos arcos no plano
+float ArcsPositionX = 0.0f;
+float ArcsPositionY = 0.0f;
+float ArcsPositionZ = 0.0f;
+
 // Escala do plano
-float g_PlaneScale = 5.0f;
+float g_PlaneScale = 7.0f;
 
 // Posição do Carro
 glm::vec4 g_CarPos;
@@ -269,8 +275,8 @@ bool g_ShiftKeyPressed = false; // Tecla Shift para aceleração
 
 // Parâmetros de movimento do carro
 float g_CarSpeed = 0.0f; // Velocidade atual do carro
-float g_CarMaxSpeed = 5.0f; // Velocidade máxima
-float g_CarAcceleration = 3.0f; // Aceleração
+float g_CarMaxSpeed = 25.0f; // Velocidade máxima
+float g_CarAcceleration = 5.0f; // Aceleração
 float g_CarDeceleration = 5.0f; // Desaceleração (freio)
 float g_CarRotationSpeed = 1.0f; // Velocidade de rotação (guinada)
 
@@ -286,6 +292,18 @@ GLint g_bbox_max_uniform;
 
 // Número de texturas carregadas pela função LoadTextureImage()
 GLuint g_NumLoadedTextures = 0;
+
+bool g_SideCameraActive = false;
+float g_BezierTime = 0.0f;
+glm::vec3 g_BezierP0, g_BezierP1, g_BezierP2, g_BezierP3;
+
+// Função auxiliar 
+glm::vec3 BezierCubic(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, float t)
+{
+    float u = 1.0f - t;
+    return u*u*u*p0 + 3*u*u*t*p1 + 3*u*t*t*p2 + t*t*t*p3;
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -363,6 +381,8 @@ int main(int argc, char* argv[])
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../data/asphalt.jpg");                // TextureImage0
     LoadTextureImage("../data/tc-car_surface.jpg");         // TextureImage1
+    LoadTextureImage("../data/tc-wall.jpg");                // TextureImage2
+    LoadTextureImage("../data/arcos.jpg");                  // TextureImage3
 
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
@@ -378,6 +398,11 @@ int main(int argc, char* argv[])
     ObjModel wallmodel("../data/wall.obj");
     ComputeNormals(&wallmodel);
     BuildTrianglesAndAddToVirtualScene(&wallmodel);
+
+    ObjModel arcsmodel("../data/arcos.obj");
+    ComputeNormals(&arcsmodel);
+    BuildTrianglesAndAddToVirtualScene(&arcsmodel);
+
 
     std::vector<glm::vec3> wall_positions = {
     {  -5.0f, 0.0f,   0.0f},
@@ -396,7 +421,7 @@ int main(int argc, char* argv[])
     // TrackPositionY é a coordenada Y do plano. Se o plano estiver em y=0, então TrackPositionY = 0.0f.
     // A posição Y do carro deve ser TrackPositionY menos a coordenada Y mínima do modelo do carro,
     // para que a base do carro coincida com a altura do plano.
-    g_CarPos = { 0.0f, 0.0f + carSize, 0.0f, 0.0f };
+    g_CarPos = { 0.0f, 0.0f + carSize, -9.0f, 0.0f };
 
     // Inicializa o tempo para o cálculo do deltaTime
     g_LastTime = glfwGetTime(); // Moved to be properly initialized here before the loop
@@ -423,6 +448,14 @@ int main(int argc, char* argv[])
     while (!glfwWindowShouldClose(window))
     {
         // Aqui executamos as operações de renderização
+
+        // ===============================================
+        // Atualiza deltaTime no início do frame
+        // ===============================================
+        double current_time = glfwGetTime();
+        float deltaTime = (float)(current_time - g_LastTime);
+        g_LastTime = current_time;
+
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
         // definida como coeficientes RGBA: Red, Green, Blue, Alpha; isto é:
@@ -463,34 +496,58 @@ int main(int argc, char* argv[])
 
         glm::mat4 view;
 
-        if (g_CameraLookAt)
+        if (g_SideCameraActive)
         {
-        // Posição da câmera atrás do carro ()
-        glm::vec3 car_direction = glm::vec3(sin(g_CarYaw), 0.0f, cos(g_CarYaw));
-        glm::vec3 camera_offset = -3.5f * car_direction + glm::vec3(0.0f, 1.0f, 0.0f); // 3.5 unidades atrás, 1 acima
-        glm::vec4 camera_position_c = glm::vec4(glm::vec3(g_CarPos) + camera_offset, 1.0f);
-        glm::vec4 camera_lookat_l = glm::vec4(g_CarPos.x, g_CarPos.y + 1.0f, g_CarPos.z, 1.0f);
-        glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c;
-        glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-        view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+            glm::vec3 carPos = glm::vec3(g_CarPos);
+            glm::vec3 right = glm::vec3(cos(g_CarYaw), 0.0f, -sin(g_CarYaw));  // lado direito
+            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+            g_BezierP0 = carPos + up * 1.5f;  // Posição inicial da câmera (acima do carro)
+            g_BezierP1 = carPos + right * 2.5f + up * 3.0f;
+            g_BezierP2 = carPos + right * 5.5f + up * 2.5f;
+            g_BezierP3 = carPos + right * 8.0f + up * 2.0f;
+
+            g_BezierTime += deltaTime;
+            if (g_BezierTime > 1.0f) g_BezierTime = 1.0f;
+
+            // DEBUG
+            // printf("Bezier time: %f\n", g_BezierTime);
+
+            glm::vec3 cam_pos = BezierCubic(g_BezierP0, g_BezierP1, g_BezierP2, g_BezierP3, g_BezierTime);
+            glm::vec4 camera_position_c = glm::vec4(cam_pos, 1.0f);
+            glm::vec4 look_at = glm::vec4(carPos + up * 1.0f, 1.0f);
+            glm::vec4 view_vector = look_at - camera_position_c;
+            glm::vec4 up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+
+            view = Matrix_Camera_View(camera_position_c, view_vector, up_vector);
         }
         else
         {
-        // Câmera livre (Free Camera)
-        glm::vec3 car_direction = glm::vec3(sin(g_CarYaw), 0.0f, cos(g_CarYaw));
-        glm::vec3 eye_offset = glm::vec3(0.0f, 1.5f, 0.0f); // Altura dos olhos do motorista
-        glm::vec3 camera_position = glm::vec3(g_CarPos) + eye_offset;
-
-        glm::vec3 camera_target = camera_position + car_direction; // Olha para frente
-
-        glm::vec4 camera_position_c = glm::vec4(camera_position, 1.0f);
-        glm::vec4 camera_lookat_l = glm::vec4(camera_target, 1.0f);
-        glm::vec4 view_vector = camera_lookat_l - camera_position_c;
-        glm::vec4 up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-
-        view = Matrix_Camera_View(camera_position_c, view_vector, up_vector);
+            g_BezierTime = 0.0f;
+            if (g_CameraLookAt)
+            {
+                glm::vec3 car_direction = glm::vec3(sin(g_CarYaw), 0.0f, cos(g_CarYaw));
+                glm::vec3 camera_offset = -3.5f * car_direction + glm::vec3(0.0f, 1.0f, 0.0f);
+                glm::vec4 camera_position_c = glm::vec4(glm::vec3(g_CarPos) + camera_offset, 1.0f);
+                glm::vec4 camera_lookat_l = glm::vec4(g_CarPos.x, g_CarPos.y + 1.0f, g_CarPos.z, 1.0f);
+                glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c;
+                glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+                view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+            }
+            else
+            {
+                glm::vec3 car_direction = glm::vec3(sin(g_CarYaw), 0.0f, cos(g_CarYaw));
+                glm::vec3 eye_offset = glm::vec3(0.0f, 1.5f, 0.0f);
+                glm::vec3 camera_position = glm::vec3(g_CarPos) + eye_offset;
+                glm::vec3 camera_target = camera_position + car_direction;
+                glm::vec4 camera_position_c = glm::vec4(camera_position, 1.0f);
+                glm::vec4 camera_lookat_l = glm::vec4(camera_target, 1.0f);
+                glm::vec4 view_vector = camera_lookat_l - camera_position_c;
+                glm::vec4 up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+                view = Matrix_Camera_View(camera_position_c, view_vector, up_vector);
+            }
         }
-
+        
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
 
@@ -531,12 +588,14 @@ int main(int argc, char* argv[])
         #define TRACK 0
         #define CAR   1
         #define WALL  2
+        #define ARCS  3
+        #define GUARD 4
 
         // Desenhamos o plano do chão
         //model = Matrix_Translate(0.0f,-1.1f,0.0f);
         model = Matrix_Translate(TrackPositionX, TrackPositionY, TrackPositionZ);
         model = model * Matrix_Scale(1.0f, 1.0f, 1.0f); // Aumenta a pista lateral e longitudinalmente
-        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE ,  glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, TRACK);
         DrawVirtualObject("the_track");
 
@@ -549,14 +608,20 @@ int main(int argc, char* argv[])
             DrawVirtualObject("the_wall");
         }
 
+        model = Matrix_Translate(ArcsPositionX, ArcsPositionY, ArcsPositionZ);
+        model = model * Matrix_Scale(1.0f, 1.0f, 1.0f); // Aumenta a pista lateral e longitudinalmente
+        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, ARCS);
+        DrawVirtualObject("the_arcs");
+
 
     // ===============================================
     // Lógica de Física (Gravidade)
     // ===============================================
 
         // Calcula o tempo decorrido desde o último frame
-        double current_time = glfwGetTime();
-        float deltaTime = (float)(current_time - g_LastTime);
+        //double current_time = glfwGetTime();
+        //float deltaTime = (float)(current_time - g_LastTime);
         g_LastTime = current_time;
 
         // Aplica gravidade na velocidade vertical
@@ -630,12 +695,11 @@ int main(int argc, char* argv[])
         g_CarPos.z += direction_vector.z * g_CarSpeed * deltaTime;
 
 
-    // ===============================================
-    // Fim da Lógica de Movimento do Carro
-    // ===============================================
+        // ===============================================
+        // Fim da Lógica de Movimento do Carro
+        // ===============================================
 
-
-            // Desenhamos o modelo do carro usando a posição e rotação atualizadas
+        // Desenhamos o modelo do carro usando a posição e rotação atualizadas
         model = Matrix_Translate(g_CarPos.x, g_CarPos.y, g_CarPos.z);
         //model = model * Matrix_Scale(0.5f, 0.5f, 0.5f); // reduz o carro pela metade
         model = model * Matrix_Rotate_Y(g_CarYaw); // Aplica a rotação do carro
@@ -650,10 +714,15 @@ int main(int argc, char* argv[])
         // Fim da Lógica de Física
         // ===============================================
 
-
         // Imprimimos na tela informação sobre o número de quadros renderizados
         // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
+
+        // Mostra a velocidade em tempo real
+        float speed_kmh = g_CarSpeed * 3.6f *3.f;
+        char velocimetro_texto[64];
+        snprintf(velocimetro_texto, sizeof(velocimetro_texto), "Velocidade: %.1f km/h", speed_kmh);
+        TextRendering_PrintString(window, velocimetro_texto, -0.95f, 0.9f, 1.0f);
 
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
@@ -803,6 +872,8 @@ void LoadShadersFromFiles()
     glUseProgram(g_GpuProgramID);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage0"), 0);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage1"), 1);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage3"), 3);
     glUseProgram(0);
 }
 
@@ -1363,6 +1434,15 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_CameraLookAt = !g_CameraLookAt;
     }
 
+
+    if (key == GLFW_KEY_SPACE)
+    {
+        if (action == GLFW_PRESS)
+            g_SideCameraActive = true;
+        else if (action == GLFW_RELEASE)
+            g_SideCameraActive = false;
+    }
+
 /*
 
     if (key == GLFW_KEY_W)
@@ -1438,6 +1518,12 @@ if (key == GLFW_KEY_D)
                 break;
         }
     }
+
+
+
+
+
+
 
 
     // Registra se o usuário pressionou ou soltou a tecla Shift da esquerda

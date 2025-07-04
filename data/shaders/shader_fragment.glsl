@@ -21,6 +21,8 @@ uniform mat4 projection;
 // Identificador que define qual objeto está sendo desenhado no momento
 #define TRACK 0
 #define CAR   1
+#define WALL  2
+#define ARCS  3
 
 uniform int object_id;
 
@@ -31,6 +33,14 @@ uniform vec4 bbox_max;
 // Variáveis para acesso das imagens de textura
 uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
+uniform sampler2D TextureImage2;
+uniform sampler2D TextureImage3;
+
+uniform vec3 Ka;  // Ambiente
+uniform vec3 Kd;  // Difusa
+uniform vec3 Ks;  // Especular
+uniform float Ns; // Brilho especular (shininess)
+
 
 
 
@@ -80,19 +90,52 @@ void main()
     }
     else if ( object_id == 1 ) //CAR
     {
-        // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
-        // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
-        // o slides 99-104 do documento Aula_20_Mapeamento_de_Texturas.pdf,
-        // e também use as variáveis min*/max* definidas abaixo para normalizar
-        // as coordenadas de textura U e V dentro do intervalo [0,1]. Para
-        // tanto, veja por exemplo o mapeamento da variável 'p_v' utilizando
-        // 'h' no slides 158-160 do documento Aula_20_Mapeamento_de_Texturas.pdf.
-        // Veja também a Questão 4 do Questionário 4 no Moodle.
-       // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+    }
+        if ( object_id == 2 ) //WALL
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
 
     }
+
+
+else if (object_id == 3) // ARCS como toro
+{
+    vec3 pos = position_model.xyz;
+
+    // --- Parâmetros do toro ---
+    float R = 1.0; // Raio do círculo maior (distância do centro ao centro do tubo)
+    float r = 0.3; // Raio do tubo (menor círculo)
+    
+    // ângulo ao redor do toro (major circle) no plano XZ
+    float theta = atan(pos.z, pos.x); // [-pi, pi]
+
+    // Posição do centro do tubo mais próximo (projeção no plano XZ)
+    float xz_len = length(pos.xz);
+    vec3 center = vec3(pos.x, 0.0, pos.z) * (R / xz_len);
+
+    // Vetor do centro do tubo até o ponto (direção do minor circle)
+    vec3 tube_vec = pos - center;
+
+    // ângulo ao redor do tubo (minor circle)
+    float phi = atan(tube_vec.y, length(tube_vec.xz)); // [-pi, pi]
+
+    // Normalização para [0,1]
+    float U = (theta + M_PI) / (2.0 * M_PI);
+    float V = (phi + M_PI) / (2.0 * M_PI);
+
+    // Usa coordenadas de textura U e V
+}
+
+
+
+
+
+
+
 
 
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
@@ -104,6 +147,10 @@ void main()
         Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
     else if (object_id == 1) //CAR
         Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
+    else if (object_id == 2) //WALL
+        Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
+    else if (object_id == 3) //ARCS
+        Kd0 = texture(TextureImage3, vec2(U,V)).rgb;
     else
         Kd0 = vec3(1.0, 1.0, 1.0); // fallback branco
 
@@ -113,6 +160,9 @@ void main()
     float lambert = max(0,dot(n,l));
 
     color.rgb = Kd0 * (lambert + 0.01);
+
+
+    
 
     // NOTE: Se você quiser fazer o rendering de objetos transparentes, é
     // necessário:
