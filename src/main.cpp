@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
+#include <iostream>
 
 // Headers abaixo são específicos de C++
 #include <map>
@@ -47,6 +48,8 @@
 // Headers locais, definidos na pasta "include/"
 #include "utils.h"
 #include "matrices.h"
+#include "collisions.h"
+
 
 
 const float TRACK_MIN_X = -100.0f;
@@ -591,22 +594,69 @@ int main(int argc, char* argv[])
         #define ARCS  3
         #define GUARD 4
 
+    
+        
+    // Salva posição anterior do carro
+    // glm::vec4 previousCarPos = g_CarPos;
+    // g_CarPos += deslocamento; 
+
+    // Atualiza bounding box do carro
+   // glm::vec3 bbox_min_car = g_VirtualScene["the_car"].bbox_min;
+  //  glm::vec3 bbox_max_car = g_VirtualScene["the_car"].bbox_max;
+
+
+    // Aplica movimento do carro (já ocorreu acima)
+   // BoundingBox carBox = ComputeCarAABB(g_CarPos, bbox_min_car, bbox_max_car);
+
+   // bool collided = false;
+   // for (const auto& pos : wall_positions)
+   // {
+   //     glm::vec3 scale(0.01f, 0.01f, 0.01f);
+  //      glm::vec3 wall_min = g_VirtualScene["the_wall"].bbox_min * scale + pos;
+   //     glm::vec3 wall_max = g_VirtualScene["the_wall"].bbox_max * scale + pos;
+  //      BoundingBox wallBox = { wall_min, wall_max };
+
+   //     if (CheckAABBCollision(carBox, wallBox)) {
+   //         collided = true;
+   //         break;
+   //     }
+   // }
+
+   // if (collided) {
+   //     g_CarPos = previousCarPos; // desfaz o movimento
+   //     std::cout << "Colisão detectada: movimento cancelado." << std::endl;
+  //  }
+
         // Desenhamos o plano do chão
-        //model = Matrix_Translate(0.0f,-1.1f,0.0f);
+        model = Matrix_Translate(0.0f,-1.1f,0.0f);
         model = Matrix_Translate(TrackPositionX, TrackPositionY, TrackPositionZ);
         model = model * Matrix_Scale(1.0f, 1.0f, 1.0f); // Aumenta a pista lateral e longitudinalmente
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE ,  glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, TRACK);
         DrawVirtualObject("the_track");
 
-        for (const auto& pos : wall_positions)
-        {
-            model = Matrix_Translate(pos.x, pos.y, pos.z);
-            model = model * Matrix_Scale(0.01f, 0.01f, 0.01f); // Aumenta a pista lateral e longitudinalmente
-            glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, WALL);
-            DrawVirtualObject("the_wall");
-        }
+    for (const auto& pos : wall_positions){
+       // Escala usada no modelo
+    glm::vec3 scale(0.01f, 0.01f, 0.01f);
+
+       // Transforma a AABB do modelo da parede
+   //  glm::vec3 wall_min = g_VirtualScene["the_wall"].bbox_min * scale + pos;
+   //  glm::vec3 wall_max = g_VirtualScene["the_wall"].bbox_max * scale + pos;
+
+   //  BoundingBox wallBox = { wall_min, wall_max };
+
+     // Testa colisão com o carro
+   //  if (CheckAABBCollision(carBox, wallBox)) {
+   //      std::cout << "Colisão com parede detectada!" << std::endl;
+    //}
+
+     // Renderização
+     model = Matrix_Translate(pos.x, pos.y, pos.z);
+     model = model * Matrix_Scale(scale.x, scale.y, scale.z);
+     glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+     glUniform1i(g_object_id_uniform, WALL);
+     DrawVirtualObject("the_wall");
+}
 
         model = Matrix_Translate(ArcsPositionX, ArcsPositionY, ArcsPositionZ);
         model = model * Matrix_Scale(1.0f, 1.0f, 1.0f); // Aumenta a pista lateral e longitudinalmente
@@ -690,9 +740,47 @@ int main(int argc, char* argv[])
         }
 
         // Atualiza a posição do carro com base na velocidade e direção
+        // glm::vec3 direction_vector = glm::vec3(sin(g_CarYaw), 0.0f, cos(g_CarYaw));
+        // g_CarPos.x += direction_vector.x * g_CarSpeed * deltaTime;
+        //g_CarPos.z += direction_vector.z * g_CarSpeed * deltaTime;
+
+        // Salva a posição anterior
+        glm::vec4 previousCarPos = g_CarPos;
+
+        // Calcula o deslocamento pretendido
         glm::vec3 direction_vector = glm::vec3(sin(g_CarYaw), 0.0f, cos(g_CarYaw));
-        g_CarPos.x += direction_vector.x * g_CarSpeed * deltaTime;
-        g_CarPos.z += direction_vector.z * g_CarSpeed * deltaTime;
+        glm::vec3 movement = direction_vector * g_CarSpeed * deltaTime;
+
+        // Aplica o deslocamento temporariamente
+        g_CarPos.x += movement.x;
+        g_CarPos.z += movement.z;
+
+        // Recalcula a AABB do carro
+        glm::vec3 bbox_min_car = g_VirtualScene["the_car"].bbox_min;
+        glm::vec3 bbox_max_car = g_VirtualScene["the_car"].bbox_max;
+        BoundingBox carBox = ComputeCarAABB(g_CarPos, bbox_min_car, bbox_max_car);
+
+        // Testa colisão
+        bool collided = false;
+        for (const auto& pos : wall_positions)
+        {
+            glm::vec3 scale(0.01f, 0.01f, 0.01f);
+            glm::vec3 wall_min = g_VirtualScene["the_wall"].bbox_min * scale + pos;
+            glm::vec3 wall_max = g_VirtualScene["the_wall"].bbox_max * scale + pos;
+            BoundingBox wallBox = { wall_min, wall_max };
+
+            if (CheckAABBCollision(carBox, wallBox)) {
+                collided = true;
+                break;
+            }
+        }
+
+        if (collided)
+        {
+         g_CarPos = previousCarPos; // desfaz o movimento
+         g_CarSpeed = 0.0f;         // opcional: para o carro ao bater
+            std::cout << "Colisão com parede detectada! Movimento cancelado." << std::endl;
+        }
 
 
         // ===============================================

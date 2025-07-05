@@ -20,4 +20,8 @@ bool CheckAABBCollisionWithPlane(const BoundingBox& carBox, const BoundingBox& p
 // Calcula o tempo para colisão vertical com um plano dado
 float CalculateAABBToPlaneCollisionTime(float plane_height, float bbox_min_height, float vel);
 
+// Verifica colisão entre cubos
+bool CheckAABBCollision(const BoundingBox& a, const BoundingBox& b);
+
+
 #endif // COLLISIONS_H
