@@ -48,14 +48,13 @@
 #include "utils.h"
 #include "matrices.h"
 
-
 const float TRACK_MIN_X = -100.0f;
 const float TRACK_MAX_X =  100.0f;
 const float TRACK_MIN_Z = -5.0f;
 const float TRACK_MAX_Z =  100.0f;
 
 glm::vec4 g_SmoothCameraPos = glm::vec4(0.0f); // Posição suavizada da câmera
-float g_CameraSmoothFactor = 5.0f; // Quanto maior, mais rápida a resposta
+float g_CameraSmoothFactor = 4.0f; // Quanto maior, mais rápida a resposta
 
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
@@ -200,13 +199,21 @@ float TrackPositionZ = 0.0f;
 // Posição dos arcos no plano
 float ArcsPositionX = 0.0f;
 float ArcsPositionY = 0.0f;
-float ArcsPositionZ = 0.0f;
+float ArcsPositionZ = -320.0f;
+
+// Posição dos guardrails no plano
+float GuardPositionX = 0.0f;
+float GuardPositionY = 0.0f;
+float GuardPositionZ = 0.0f;
 
 // Escala do plano
-float g_PlaneScale = 7.0f;
+float g_PlaneScale = 50.0f;
 
 // Posição do Carro
 glm::vec4 g_CarPos;
+
+// Posição do Carro 2 player (pc)
+glm::vec4 g_CarPos_pc;
 
 // Variável que controla qual câmera usar: falsa para câmera livre, verdadeira para look-at.
 bool g_CameraLookAt = true;
@@ -224,11 +231,13 @@ bool g_WKeyPressedFree    = false;
 bool g_SKeyPressedFree    = false;
 bool g_AKeyPressedFree    = false;
 bool g_DKeyPressedFree    = false;
+bool g_BKeyPressedFree    = false;
 
 // Variáveis para simulação de física
 float g_Gravity = -9.8f; // Aceleração da gravidade (em unidades/s^2, ajuste conforme necessário)
 glm::vec3 g_CarVelocity = glm::vec3(0.0f, 0.0f, 0.0f); // Velocidade do carro
 float g_CarYaw = 0.0f; // Rotação do carro em torno do eixo Y (guinada)
+float g_CarYaw_pc = 0.0f; // Rotação do carro em torno do eixo Y (guinada)
 
 // Variável para cálculo do tempo entre frames (deltaTime)
 double g_LastTime = 0.0;
@@ -271,7 +280,6 @@ bool g_WKeyPressed = false;
 bool g_AKeyPressed = false;
 bool g_SKeyPressed = false;
 bool g_DKeyPressed = false;
-bool g_ShiftKeyPressed = false; // Tecla Shift para aceleração
 
 // Parâmetros de movimento do carro
 float g_CarSpeed = 0.0f; // Velocidade atual do carro
@@ -279,7 +287,6 @@ float g_CarMaxSpeed = 25.0f; // Velocidade máxima
 float g_CarAcceleration = 5.0f; // Aceleração
 float g_CarDeceleration = 5.0f; // Desaceleração (freio)
 float g_CarRotationSpeed = 1.0f; // Velocidade de rotação (guinada)
-
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint g_GpuProgramID = 0;
@@ -292,17 +299,19 @@ GLint g_bbox_max_uniform;
 
 // Número de texturas carregadas pela função LoadTextureImage()
 GLuint g_NumLoadedTextures = 0;
-
 bool g_SideCameraActive = false;
 float g_BezierTime = 0.0f;
 glm::vec3 g_BezierP0, g_BezierP1, g_BezierP2, g_BezierP3;
 
-// Função auxiliar 
+// Função auxiliar para movimentação com curva Bézier cúbica.
 glm::vec3 BezierCubic(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, float t)
 {
     float u = 1.0f - t;
     return u*u*u*p0 + 3*u*u*t*p1 + 3*u*t*t*p2 + t*t*t*p3;
 }
+
+double g_GameStartTime = 0.0;
+bool g_RaceStarted = false;
 
 
 int main(int argc, char* argv[])
@@ -334,7 +343,7 @@ int main(int argc, char* argv[])
     // Criamos uma janela do sistema operacional, com 800 colunas e 600 linhas
     // de pixels, e com título "INF01047 ...".
     GLFWwindow* window;
-    window = glfwCreateWindow(800, 600, "Trabalho Final da Disciplina de FCG", NULL, NULL);
+    window = glfwCreateWindow(800, 600, "*** ARRANCADÃO 2025 - Desafio dos 400 metros ***", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -379,11 +388,14 @@ int main(int argc, char* argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../data/asphalt.jpg");                // TextureImage0
-    LoadTextureImage("../data/tc-car_surface.jpg");         // TextureImage1
-    LoadTextureImage("../data/tc-wall.jpg");                // TextureImage2
-    LoadTextureImage("../data/arcos.jpg");                  // TextureImage3
-
+    LoadTextureImage("../data/asphalt.jpg");               // TextureImage0
+    LoadTextureImage("../data/tc-car_surface.jpg");        // TextureImage1
+    LoadTextureImage("../data/tc-wall.jpg");               // TextureImage2
+    LoadTextureImage("../data/arcos.jpg");                 // TextureImage3
+    LoadTextureImage("../data/guardRail.jpg");             // TextureImage4
+    LoadTextureImage("../data/ruedas.jpg");                // TextureImage5
+    LoadTextureImage("../data/ventanas.jpg");              // TextureImage6
+    LoadTextureImage("../data/tc-car_surface_pc.jpg");     // TextureImage7
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel trackmodel("../data/track.obj");
@@ -403,28 +415,56 @@ int main(int argc, char* argv[])
     ComputeNormals(&arcsmodel);
     BuildTrianglesAndAddToVirtualScene(&arcsmodel);
 
+    ObjModel guardRailmodel("../data/guardRail.obj");
+    ComputeNormals(&guardRailmodel);
+    BuildTrianglesAndAddToVirtualScene(&guardRailmodel);
+
+    ObjModel carpcmodel("../data/car_pc.obj");
+    ComputeNormals(&carpcmodel);
+    BuildTrianglesAndAddToVirtualScene(&carpcmodel);
 
     std::vector<glm::vec3> wall_positions = {
-    {  -5.0f, 0.0f,   0.0f},
-    {  -5.0f, 0.0f,  20.0f},
-    {  -5.0f, 0.0f,  40.0f},
-    {  -5.0f, 0.0f,  60.0f},
-    {   5.0f, 0.0f,   0.0f},
-    {   5.0f, 0.0f,  20.0f},
-    {   5.0f, 0.0f,  40.0f},
-    {   5.0f, 0.0f,  60.0f}
+    {  -6.0f, 0.0f, 405.0f},
+    {  -4.0f, 0.0f, 405.0f},
+    {  -2.0f, 0.0f, 405.0f},
+    {   0.0f, 0.0f, 405.0f},
+    {   2.0f, 0.0f, 405.0f},
+    {   4.0f, 0.0f, 405.0f},
+    {   6.0f, 0.0f, 405.0f}
 };
+
+
+    std::vector<glm::vec3> guardRail_positions;
+
+    // Inicializa a sequência de posições ao longo do eixo X e Z
+    float z_increment = 5.0f; // Incremento do eixo Z
+    float x_values[] = {-5.0f, 5.0f}; // Valores de X alternando entre -5.0f e 5.0f
+
+    // Gerar posições com alternância de X
+    for (int i = 0; i < 2; ++i) {  // i = 0 -> X = -5.0f, i = 1 -> X = 5.0f
+        float x = x_values[i];  // Definir valor de X para a iteração
+
+        // Gerar as posições ao longo do eixo Z 
+        for (float z = -320.0f; z <= 400.0f; z += z_increment) {
+            // Adiciona a posição no vetor guardRail_positions
+            guardRail_positions.push_back(glm::vec3(x, 0.8f, z));
+        }
+    }
 
     // Configura posição inicial do Carro. Certifica-se de que a parte inferior do carro está na mesma altura que o plano.
     //float car_min_y = g_VirtualScene["the_car"].bbox_min.y;
     float carSize = g_VirtualScene["tc-car_surface.jpg"].bbox_max.y - g_VirtualScene["tc-car_surface.jpg"].bbox_min.y;
+    float carSizepc = g_VirtualScene["tc-car_surface_pc.jpg"].bbox_max.y - g_VirtualScene["tc-car_surface_pc.jpg"].bbox_min.y;
     // TrackPositionY é a coordenada Y do plano. Se o plano estiver em y=0, então TrackPositionY = 0.0f.
     // A posição Y do carro deve ser TrackPositionY menos a coordenada Y mínima do modelo do carro,
     // para que a base do carro coincida com a altura do plano.
-    g_CarPos = { 0.0f, 0.0f + carSize, -9.0f, 0.0f };
+    g_CarPos = { 1.0f, 0.0f + carSize, -328.6f, 0.0f };
+    g_CarPos_pc = { -1.0f, 0.0f + carSizepc, -328.6f, 0.0f };
 
     // Inicializa o tempo para o cálculo do deltaTime
     g_LastTime = glfwGetTime(); // Moved to be properly initialized here before the loop
+
+    g_GameStartTime = g_LastTime; // tempo da inicialização
 
 
     if ( argc > 1 )
@@ -456,6 +496,8 @@ int main(int argc, char* argv[])
         float deltaTime = (float)(current_time - g_LastTime);
         g_LastTime = current_time;
 
+        float elapsed = (float)(current_time - g_GameStartTime);
+
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
         // definida como coeficientes RGBA: Red, Green, Blue, Alpha; isto é:
@@ -477,10 +519,10 @@ int main(int argc, char* argv[])
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
-        float r = g_CameraDistance;
-        float y = r*sin(g_CameraPhi);
-        float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
-        float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+        //float r = g_CameraDistance;
+        //float y = r*sin(g_CameraPhi);
+        //float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
+        //float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -524,6 +566,7 @@ int main(int argc, char* argv[])
         else
         {
             g_BezierTime = 0.0f;
+
             if (g_CameraLookAt)
             {
                 glm::vec3 car_direction = glm::vec3(sin(g_CarYaw), 0.0f, cos(g_CarYaw));
@@ -547,7 +590,7 @@ int main(int argc, char* argv[])
                 view = Matrix_Camera_View(camera_position_c, view_vector, up_vector);
             }
         }
-        
+
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
 
@@ -585,11 +628,14 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(g_view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(g_projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
-        #define TRACK 0
-        #define CAR   1
-        #define WALL  2
-        #define ARCS  3
-        #define GUARD 4
+        #define TRACK  0
+        #define CAR    1
+        #define WALL   2
+        #define ARCS   3
+        #define GUARD  4
+        #define WHEEL  5
+        #define WINDOW 6
+        #define PC     7
 
         // Desenhamos o plano do chão
         //model = Matrix_Translate(0.0f,-1.1f,0.0f);
@@ -602,22 +648,30 @@ int main(int argc, char* argv[])
         for (const auto& pos : wall_positions)
         {
             model = Matrix_Translate(pos.x, pos.y, pos.z);
-            model = model * Matrix_Scale(0.01f, 0.01f, 0.01f); // Aumenta a pista lateral e longitudinalmente
+            model = model * Matrix_Scale(1.0f, 1.0f, 1.0f);
             glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
             glUniform1i(g_object_id_uniform, WALL);
             DrawVirtualObject("the_wall");
         }
 
         model = Matrix_Translate(ArcsPositionX, ArcsPositionY, ArcsPositionZ);
-        model = model * Matrix_Scale(1.0f, 1.0f, 1.0f); // Aumenta a pista lateral e longitudinalmente
-        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, ARCS);
-        DrawVirtualObject("the_arcs");
+        model = model * Matrix_Scale(1.0f, 1.0f, 1.0f);
+            glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(g_object_id_uniform, ARCS);
+            DrawVirtualObject("the_arcs");
 
+        for (const auto& pos : guardRail_positions)
+        {
+            model = Matrix_Translate(pos.x, pos.y, pos.z);
+            model = model * Matrix_Scale(0.8f, 0.8f, 0.8f); // Mudar a escala dos cones
+            glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(g_object_id_uniform, GUARD);
+            DrawVirtualObject("the_guardRail");
+        }
 
-    // ===============================================
-    // Lógica de Física (Gravidade)
-    // ===============================================
+    //  ===============================================
+    //  Lógica de Física (Implementação da Gravidade)
+    //  ===============================================
 
         // Calcula o tempo decorrido desde o último frame
         //double current_time = glfwGetTime();
@@ -630,10 +684,14 @@ int main(int argc, char* argv[])
         // Atualiza a posição do carro com base na velocidade
         g_CarPos.y += g_CarVelocity.y * deltaTime;
 
-        // Obtém a altura mínima do modelo do carro para detecção de colisão com o plano
+        // Obtém a altura mínima do modelo dos carros para detecção de colisão com o plano
         float car_min_y = g_VirtualScene["the_car"].bbox_min.y;
+        float car_pc_min_y = g_VirtualScene["the_car_pc"].bbox_min.y;
         // Calcula a altura da base do carro em relação ao seu ponto de origem
         float car_base_offset = car_min_y;
+
+        // Calcula a altura da base do carro do player 2 (pc) em relação ao seu ponto de origem
+        float car_pc_base_offset = car_pc_min_y;
 
         // Posição Y do chão/plano
         float plane_y_position = TrackPositionY;
@@ -651,16 +709,18 @@ int main(int argc, char* argv[])
         // Garante que o carro esteja sempre no plano ou acima dele, eliminando o "flutuar"
         g_CarPos.y = glm::max(g_CarPos.y, plane_y_position - car_base_offset);
 
-
+        // Garante que o carro 2 esteja sempre no plano ou acima dele, eliminando o "flutuar"
+        g_CarPos_pc.y = glm::max(g_CarPos.y, plane_y_position - car_pc_base_offset);
 
     // ===============================================
     // Lógica de Movimento do Carro
     // ===============================================
 
+        if (elapsed >= 5.0f)
+        {
+            g_RaceStarted = true;
+
         float current_acceleration = g_CarAcceleration;
-        if (g_ShiftKeyPressed) {
-            current_acceleration *= 2.0f; // Duplica a aceleração se Shift estiver pressionado
-        }
 
         // Aceleração/Desaceleração
         if (g_WKeyPressed) {
@@ -695,9 +755,34 @@ int main(int argc, char* argv[])
         g_CarPos.z += direction_vector.z * g_CarSpeed * deltaTime;
 
 
-        // ===============================================
-        // Fim da Lógica de Movimento do Carro
-        // ===============================================
+    // ===============================================
+    // Fim da Lógica de Movimento do Carro
+    // ===============================================
+
+    // ==================================================================
+    // Lógica bem simples do Movimento do Carro do player 2 - IA (car_pc)
+    // ==================================================================
+    static float g_CarSpeed_pc = 0.0f;
+    const float g_CarMaxSpeed_pc = 30.0f; // velocidade máxima da IA
+    const float g_CarAcceleration_pc = 4.0f; // aceleração IA
+
+    if (g_CarPos_pc.z < 400.0f)
+    {
+        // Aumenta a velocidade até o máximo
+        g_CarSpeed_pc += g_CarAcceleration_pc * deltaTime;
+        g_CarSpeed_pc = glm::min(g_CarSpeed_pc, g_CarMaxSpeed_pc);
+
+        // Atualiza posição da IA (sempre para frente, sem rotação)
+        glm::vec3 dir_pc = glm::vec3(sin(g_CarYaw_pc), 0.0f, cos(g_CarYaw_pc));
+        g_CarPos_pc.x += dir_pc.x * g_CarSpeed_pc * deltaTime;
+        g_CarPos_pc.z += dir_pc.z * g_CarSpeed_pc * deltaTime;
+    }
+    else
+    {
+        // Parou ao final da pista
+        g_CarSpeed_pc = 0.0f;
+    }
+}
 
         // Desenhamos o modelo do carro usando a posição e rotação atualizadas
         model = Matrix_Translate(g_CarPos.x, g_CarPos.y, g_CarPos.z);
@@ -706,6 +791,20 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, CAR);
         DrawVirtualObject("the_car");
+        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, WHEEL);
+        DrawVirtualObject("ruedas");
+        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, WINDOW);
+        DrawVirtualObject("ventanas");
+
+        // Desenhamos o modelo do carro usando a posição e rotação atualizadas
+        model = Matrix_Translate(g_CarPos_pc.x, g_CarPos_pc.y, g_CarPos_pc.z);
+        //model = model * Matrix_Scale(0.5f, 0.5f, 0.5f); // reduz o carro pela metade
+        model = model * Matrix_Rotate_Y(g_CarYaw_pc); // Aplica a rotação do carro
+        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, PC);
+        DrawVirtualObject("the_car_pc");
 
         //g_CarPos.x = std::max(TRACK_MIN_X, std::min(g_CarPos.x, TRACK_MAX_X));
         //g_CarPos.z = std::max(TRACK_MIN_Z, std::min(g_CarPos.z, TRACK_MAX_Z));
@@ -718,11 +817,28 @@ int main(int argc, char* argv[])
         // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
 
+    if (!g_RaceStarted)
+    {
+        int countdown = 5 - (int)elapsed;
+        char countdown_text[32];
+        snprintf(countdown_text, sizeof(countdown_text), "Arrancada em: %d", countdown);
+        TextRendering_PrintString(window, countdown_text, -0.30f, 0.5f, 2.0f);
+    }
+
         // Mostra a velocidade em tempo real
         float speed_kmh = g_CarSpeed * 3.6f *3.f;
         char velocimetro_texto[64];
         snprintf(velocimetro_texto, sizeof(velocimetro_texto), "Velocidade: %.1f km/h", speed_kmh);
         TextRendering_PrintString(window, velocimetro_texto, -0.95f, 0.9f, 1.0f);
+
+        if (g_CarPos.z >= 400.0f)
+        {
+            TextRendering_PrintString(window, "YOU WON!", -0.2f, 0.8f, 2.0f);
+        }
+        else if (g_CarPos_pc.z >= 400.0f)
+        {
+            TextRendering_PrintString(window, "YOU LOST!", -0.2f, 0.8f, 2.0f);
+        }
 
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
@@ -731,6 +847,7 @@ int main(int argc, char* argv[])
         // tudo que foi renderizado pelas funções acima.
         // Veja o link: https://en.wikipedia.org/w/index.php?title=Multiple_buffering&oldid=793452829#Double_buffering_in_computer_graphics
         glfwSwapBuffers(window);
+
 
         // Verificamos com o sistema operacional se houve alguma interação do
         // usuário (teclado, mouse, ...). Caso positivo, as funções de callback
@@ -874,6 +991,10 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage3"), 3);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage4"), 4);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage5"), 5);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage6"), 6);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage7"), 7);
     glUseProgram(0);
 }
 
@@ -1434,7 +1555,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_CameraLookAt = !g_CameraLookAt;
     }
 
-
     if (key == GLFW_KEY_SPACE)
     {
         if (action == GLFW_PRESS)
@@ -1442,30 +1562,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         else if (action == GLFW_RELEASE)
             g_SideCameraActive = false;
     }
-
-/*
-
-    if (key == GLFW_KEY_W)
-{
-    if (action == GLFW_PRESS) g_WKeyPressedFree = true;
-    else if (action == GLFW_RELEASE) g_WKeyPressedFree = false;
-}
-if (key == GLFW_KEY_S)
-{
-    if (action == GLFW_PRESS) g_SKeyPressedFree = true;
-    else if (action == GLFW_RELEASE) g_SKeyPressedFree = false;
-}
-if (key == GLFW_KEY_A)
-{
-    if (action == GLFW_PRESS) g_AKeyPressedFree = true;
-    else if (action == GLFW_RELEASE) g_AKeyPressedFree = false;
-}
-if (key == GLFW_KEY_D)
-{
-    if (action == GLFW_PRESS) g_DKeyPressedFree = true;
-    else if (action == GLFW_RELEASE) g_DKeyPressedFree = false;
-}
-*/
 
  // Acelera para frente, se a tecla W for pressionada
     if (key == GLFW_KEY_W)
@@ -1515,28 +1611,6 @@ if (key == GLFW_KEY_D)
                 break;
             case GLFW_RELEASE:
                 g_DKeyPressed = false;
-                break;
-        }
-    }
-
-
-
-
-
-
-
-
-    // Registra se o usuário pressionou ou soltou a tecla Shift da esquerda
-    if (key == GLFW_KEY_LEFT_SHIFT)
-    {
-        switch (action){
-
-            case GLFW_PRESS:
-                g_ShiftKeyPressed = true;
-                //fprintf(stdout,"ACELERA....!\n");
-                break;
-            case GLFW_RELEASE:
-                g_ShiftKeyPressed= false;
                 break;
         }
     }

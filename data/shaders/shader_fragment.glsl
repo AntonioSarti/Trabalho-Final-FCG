@@ -13,43 +13,41 @@ in vec4 position_model;
 // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
 in vec2 texcoords;
 
+// Cor interpolada pelos vértices. Para usar no modelo de Gouraud.
+in vec3 vertex_color;
+
 // Matrizes computadas no código C++ e enviadas para a GPU
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-
-// Identificador que define qual objeto está sendo desenhado no momento
-#define TRACK 0
-#define CAR   1
-#define WALL  2
-#define ARCS  3
-
 uniform int object_id;
 
-// Parâmetros da axis-aligned bounding box (AABB) do modelo
-uniform vec4 bbox_min;
-uniform vec4 bbox_max;
+// Identificador de qual objeto está sendo desenhado
+#define TRACK   0
+#define CAR     1
+#define WALL    2
+#define ARCS    3
+#define GUARD   4
+#define WHEEL   5
+#define WINDOW  6
+#define PC      7
+
+// Constante
+#define M_PI 3.14159265358979323846
 
 // Variáveis para acesso das imagens de textura
 uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
-
-uniform vec3 Ka;  // Ambiente
-uniform vec3 Kd;  // Difusa
-uniform vec3 Ks;  // Especular
-uniform float Ns; // Brilho especular (shininess)
-
-
-
+uniform sampler2D TextureImage4;
+uniform sampler2D TextureImage5;
+uniform sampler2D TextureImage6;
+uniform sampler2D TextureImage7;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
 
-// Constantes
-#define M_PI   3.14159265358979323846
-#define M_PI_2 1.57079632679489661923
 
 void main()
 {
@@ -75,94 +73,151 @@ void main()
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
 
+    // Vetor que define o meio do caminho entre v e l.
+    vec4 h = normalize(v + l);
+
     // Coordenadas de textura U e V
     float U = texcoords.x;
     float V = texcoords.y;
+    
+    vec3 Ka;  // Ambiente
+    vec3 Kd;  // Difusa
+    vec3 Ks;  // Especular
+    float Ns; // Brilho especular (shininess)
 
-    
-    
-    if ( object_id == 0 ) //TRACK
+
+        if ( object_id == 0 ) // TRACK
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
-
     }
-    else if ( object_id == 1 ) //CAR
+        else if ( object_id == 1 ) // CAR
     {
         U = texcoords.x;
         V = texcoords.y;
     }
-        if ( object_id == 2 ) //WALL
+        if ( object_id == 2 ) // WALL
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
+    }
+        if ( object_id == 4 )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+    }
+        if ( object_id == 5 )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+    }
+        if ( object_id == 6 )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+    }
+        if ( object_id == 7 )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+    }
+        else if (object_id == 3) // ARCS como toro
+    {
+        vec3 pos = position_model.xyz;
 
+        // --- Parâmetros do toro ---
+        float R = 1.0; // Raio do círculo maior (distância do centro ao centro do tubo)
+        float r = 0.3; // Raio do tubo (menor círculo)
+        
+        // ângulo ao redor do toro (major circle) no plano XZ
+        float theta = atan(pos.z, pos.x); // [-pi, pi]
+
+        // Posição do centro do tubo mais próximo (projeção no plano XZ)
+        float xz_len = length(pos.xz);
+        vec3 center = vec3(pos.x, 0.0, pos.z) * (R / xz_len);
+
+        // Vetor do centro do tubo até o ponto (direção do minor circle)
+        vec3 tube_vec = pos - center;
+
+        // ângulo ao redor do tubo (minor circle)
+        float phi = atan(tube_vec.y, length(tube_vec.xz)); // [-pi, pi]
+
+        // Normalização para [0,1]
+        float U = (theta + M_PI) / (2.0 * M_PI);
+        float V = (phi + M_PI) / (2.0 * M_PI);
     }
 
 
-else if (object_id == 3) // ARCS como toro
-{
-    vec3 pos = position_model.xyz;
+    if (object_id == 0) { // TRACK
+        Kd = texture(TextureImage0, vec2(U,V)).rgb;
+        Ka = vec3(0.05f, 0.05f, 0.05f);
+        Ks = vec3(0.1f, 0.1f, 0.1f);
+        Ns = 8.0f;
+    } else if (object_id == 1) { // CAR
+        Kd = texture(TextureImage1, vec2(U,V)).rgb;
+        Ka = Kd * 0.5f;
+        Ks = vec3(0.8f, 0.8f, 0.8f);
+        Ns = 64.0f;
+    } else if (object_id == 2) { // CAR
+        Kd = texture(TextureImage2, vec2(U,V)).rgb;
+        Ka = Kd * 0.5f;
+        Ks = vec3(0.8f, 0.8f, 0.8f);
+        Ns = 64.0f;
+    } else if (object_id == 7) { // PLR2
+        Kd = texture(TextureImage7, vec2(U,V)).rgb;
+        Ka = vec3(0.0f, 0.0f, 0.0f);
+        Ks = vec3(0.0f, 0.0f, 0.0f);
+        Ns = 32.0f;
+    } else if (object_id == 3) { // ARCS
+        Kd = texture(TextureImage3, vec2(U,V)).rgb;
+        Ka = Kd * 0.5f;
+        Ks = vec3(0.1f, 0.1f, 0.1f);
+        Ns = 35.0f;
+    } else if (object_id == 4) { // GUARD
+        Kd = texture(TextureImage4, vec2(U,V)).rgb;
+        Ka = Kd * 0.5f;
+        Ks = vec3(0.1f, 0.1f, 0.1f);
+        Ns = 35.0f;
+    } else if (object_id == 5) {
+        Kd = texture(TextureImage5, vec2(U,V)).rgb;
+        Ka = Kd * 0.5f;
+        Ks = vec3(0.1f, 0.1f, 0.1f);
+        Ns = 35.0f;
+    } else if (object_id == 6) {
+        Kd = texture(TextureImage6, vec2(U,V)).rgb;
+        Ka = Kd * 0.5f;
+        Ks = vec3(0.1f, 0.1f, 0.1f);
+        Ns = 35.0f;
+    } else if (object_id == 7) {
+        Kd = texture(TextureImage7, vec2(U,V)).rgb;
+        Ka = Kd * 0.5f;
+        Ks = vec3(0.1f, 0.1f, 0.1f);
+        Ns = 35.0f;
+    } else {
+        Kd = vec3(1.0f, 1.0f, 1.0f);
+        Ka = vec3(0.0f, 0.0f, 0.0f);
+        Ks = vec3(0.0f, 0.0f, 0.0f);
+        Ns = 1.0f;
+    }
 
-    // --- Parâmetros do toro ---
-    float R = 1.0; // Raio do círculo maior (distância do centro ao centro do tubo)
-    float r = 0.3; // Raio do tubo (menor círculo)
-    
-    // ângulo ao redor do toro (major circle) no plano XZ
-    float theta = atan(pos.z, pos.x); // [-pi, pi]
+        // Espectro da fonte de iluminação
+        vec3 I = vec3(0.98f, 1.00f, 0.92f);
 
-    // Posição do centro do tubo mais próximo (projeção no plano XZ)
-    float xz_len = length(pos.xz);
-    vec3 center = vec3(pos.x, 0.0, pos.z) * (R / xz_len);
+        // Espectro da luz ambiente
+        vec3 Ia = vec3(0.98f, 1.00f, 0.92f);
 
-    // Vetor do centro do tubo até o ponto (direção do minor circle)
-    vec3 tube_vec = pos - center;
+        // Equação de Iluminação
+        vec3 lambert_diffuse_term = Kd * I * max(0, dot(n, l));
+        vec3 ambient_term = Ka * Ia;
+        vec3 phong_specular_term  = Ks * I * pow(max(0, dot(n, h)), Ns);
 
-    // ângulo ao redor do tubo (minor circle)
-    float phi = atan(tube_vec.y, length(tube_vec.xz)); // [-pi, pi]
-
-    // Normalização para [0,1]
-    float U = (theta + M_PI) / (2.0 * M_PI);
-    float V = (phi + M_PI) / (2.0 * M_PI);
-
-    // Usa coordenadas de textura U e V
-}
-
-
-
-
-
-
-
-
-
-    // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
-    //vec3 Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
-
-    vec3 Kd0;
-
-    if (object_id == 0) //TRACK
-        Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
-    else if (object_id == 1) //CAR
-        Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
-    else if (object_id == 2) //WALL
-        Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
-    else if (object_id == 3) //ARCS
-        Kd0 = texture(TextureImage3, vec2(U,V)).rgb;
-    else
-        Kd0 = vec3(1.0, 1.0, 1.0); // fallback branco
-
-
-
-    // Equação de Iluminação
-    float lambert = max(0,dot(n,l));
-
-    color.rgb = Kd0 * (lambert + 0.01);
-
-
-    
+        color.rgb = lambert_diffuse_term + ambient_term + phong_specular_term;
 
     // NOTE: Se você quiser fazer o rendering de objetos transparentes, é
     // necessário:
@@ -176,9 +231,10 @@ else if (object_id == 3) // ARCS como toro
     //    suas distâncias para a câmera (desenhando primeiro objetos
     //    transparentes que estão mais longe da câmera).
     // Alpha default = 1 = 100% opaco = 0% transparente
-    color.a = 1;
+        color.a = 1;
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-    color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
+        color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
 }
+
