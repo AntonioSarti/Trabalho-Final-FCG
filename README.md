@@ -24,7 +24,7 @@ O Trabalho Final da disciplina consistiu no desenvolvimento de um jogo tridimens
 | Transformações geométricas controladas pelo usuário | Sim | Antonio |
 | Câmera livre e câmera look-at                       | Sim | Antonio |           
 | Instâncias de objetos                               | Sim | Antonio |           
-| Três tipos de testes de intersecção                 | Não | - |           
+| Três tipos de testes de intersecção                 | Sim | Leandro |           
 | Modelos de Iluminação Difusa e Blinn-Phong          | Sim | Antonio |   
 | Modelos de Interpolação de Phong e Gouraud          | Sim | Antonio |
 | Mapeamento de texturas em todos os objetos          | Sim | Antonio |
@@ -36,5 +36,6 @@ O Trabalho Final da disciplina consistiu no desenvolvimento de um jogo tridimens
 | Física básica: gravidade, atrito, velocidade, aceleração           | Sim | Antonio |
 | Lógica do movimento do adversário (IA)                             | Sim | Antonio |
 | Velocímetro simplificado (em forma de texto) na tela               | Sim | Antonio |           
-| Lógica de contagem regressiva (countdown) para o início da corrida | Sim | Antonio | 
+| Lógica de contagem regressiva (countdown) para o início da corrida | Sim | Antonio |
+| Lógica e implementação dos testes de colisões                      | Sim | Leandro |  
 
