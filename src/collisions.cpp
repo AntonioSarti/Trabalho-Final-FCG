@@ -88,7 +88,7 @@ bool ResolveCarWallCollision(
         }
 
         carSpeed = 0.0f;
-        std::cout << "Colisão com parede detectada! Ajuste preciso aplicado." << std::endl;
+        //std::cout << "Colisão com parede detectada! Ajuste preciso aplicado." << std::endl;
         return true;
     }
 
@@ -104,7 +104,7 @@ void ResolveCarGroundCollision(
     if (car_base_y < plane_y_position) {
         float offset = car_bbox_min.y;
         carPos.y = plane_y_position - offset;
-        std::cout << "Colisão com o plano detectada. Corrigindo posição." << std::endl;
+        // std::cout << "Colisão com o plano detectada. Corrigindo posição." << std::endl;
     }
 }
 
