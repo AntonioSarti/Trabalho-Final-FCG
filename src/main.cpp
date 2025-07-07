@@ -30,6 +30,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
@@ -47,6 +48,7 @@
 // Headers locais, definidos na pasta "include/"
 #include "utils.h"
 #include "matrices.h"
+#include "collisions.h"
 
 const float TRACK_MIN_X = -100.0f;
 const float TRACK_MAX_X =  100.0f;
@@ -214,6 +216,9 @@ glm::vec4 g_CarPos;
 
 // Posição do Carro 2 player (pc)
 glm::vec4 g_CarPos_pc;
+
+//Velocidade do Carro 2 player (pc)
+float g_CarSpeed_pc = 0.0f;
 
 // Variável que controla qual câmera usar: falsa para câmera livre, verdadeira para look-at.
 bool g_CameraLookAt = true;
@@ -762,9 +767,9 @@ int main(int argc, char* argv[])
     // ==================================================================
     // Lógica bem simples do Movimento do Carro do player 2 - IA (car_pc)
     // ==================================================================
-    static float g_CarSpeed_pc = 0.0f;
-    const float g_CarMaxSpeed_pc = 30.0f; // velocidade máxima da IA
-    const float g_CarAcceleration_pc = 4.0f; // aceleração IA
+    //static float g_CarSpeed_pc = 0.0f;
+    const float g_CarMaxSpeed_pc = 20.0f; // velocidade máxima da IA //30.0f
+    const float g_CarAcceleration_pc = 3.0f; // aceleração IA   //4.0f
 
     if (g_CarPos_pc.z < 400.0f)
     {
@@ -783,6 +788,42 @@ int main(int argc, char* argv[])
         g_CarSpeed_pc = 0.0f;
     }
 }
+
+// ===============================================
+// Colisão Esfera vs Esfera entre os dois carros
+// ===============================================
+
+// Centro das esferas = posição dos carros
+glm::vec3 center_player = glm::vec3(g_CarPos);
+glm::vec3 center_pc     = glm::vec3(g_CarPos_pc);
+
+// Raio estimado dos carros (ajuste conforme o modelo)
+float radius_player = 1.0f;
+float radius_pc     = 1.0f;
+
+//float radius_player = glm::length(g_VirtualScene["the_car"].bbox_max - g_VirtualScene["the_car"].bbox_min) / 2.5f;
+//float radius_pc     = glm::length(g_VirtualScene["the_car_pc"].bbox_max - g_VirtualScene["the_car_pc"].bbox_min) / 2.5f;
+
+if (CheckSphereCollision(center_player, radius_player, center_pc, radius_pc)) {
+    std::cout << "Colisão entre carros detectada (esfera vs esfera)!" << std::endl;
+
+    // Resposta simples: anula as velocidades
+    g_CarSpeed = 0.0f;
+    g_CarSpeed_pc = 0.0f;
+
+    // Separa os carros suavemente para não ficarem sobrepostos
+    glm::vec3 direction = glm::normalize(center_player - center_pc);
+    float overlap = (radius_player + radius_pc) - glm::distance(center_player, center_pc);
+
+    // Aplica deslocamento de recuo proporcional
+    g_CarPos     += glm::vec4(direction * (overlap * 0.5f), 0.0f);
+    g_CarPos_pc  -= glm::vec4(direction * (overlap * 0.5f), 0.0f);
+}
+
+// ===============================================
+// FIM da Colisão Esfera vs Esfera entre os dois carros
+// ===============================================
+
 
         // Desenhamos o modelo do carro usando a posição e rotação atualizadas
         model = Matrix_Translate(g_CarPos.x, g_CarPos.y, g_CarPos.z);
