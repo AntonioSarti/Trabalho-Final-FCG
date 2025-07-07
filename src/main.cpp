@@ -780,7 +780,7 @@ int main(int argc, char* argv[])
     // Lógica bem simples do Movimento do Carro do player 2 - IA (car_pc)
     // ==================================================================
 
-    static float g_CarSpeed_pc = 0.0f;
+    //static float g_CarSpeed_pc = 0.0f;
     float g_CarMaxSpeed_pc; // velocidade máxima da IA
     float g_CarAcceleration_pc; // aceleração IA
 
