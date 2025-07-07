@@ -203,6 +203,16 @@ float ArcsPositionX = 0.0f;
 float ArcsPositionY = 0.0f;
 float ArcsPositionZ = -320.0f;
 
+// Posição das pessoas no plano
+float PeoplePositionX = 1.0f;
+float PeoplePositionY = 0.8f;
+float PeoplePositionZ = -330.0f;
+
+// Posição da Grandma no plano
+float GrandmaPositionX = 1.0f;
+float GrandmaPositionY = 1.2f;
+float GrandmaPositionZ = 404.5f;
+
 // Posição dos guardrails no plano
 float GuardPositionX = 0.0f;
 float GuardPositionY = 0.0f;
@@ -404,6 +414,8 @@ int main(int argc, char* argv[])
     LoadTextureImage("../data/ruedas.jpg");                // TextureImage5
     LoadTextureImage("../data/ventanas.jpg");              // TextureImage6
     LoadTextureImage("../data/tc-car_surface_pc.jpg");     // TextureImage7
+    LoadTextureImage("../data/Tex_6.jpg");                 // TextureImage8
+    LoadTextureImage("../data/grandma.jpg");               // TextureImage9
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel trackmodel("../data/track.obj");
@@ -431,6 +443,14 @@ int main(int argc, char* argv[])
     ComputeNormals(&carpcmodel);
     BuildTrianglesAndAddToVirtualScene(&carpcmodel);
 
+    ObjModel peoplemodel("../data/people.obj");
+    ComputeNormals(&peoplemodel);
+    BuildTrianglesAndAddToVirtualScene(&peoplemodel);
+
+    ObjModel grandmamodel("../data/grandma.obj");
+    ComputeNormals(&grandmamodel);
+    BuildTrianglesAndAddToVirtualScene(&grandmamodel);
+
     std::vector<glm::vec3> wall_positions = {
     {  -6.0f, 0.0f, 405.0f},
     {  -4.0f, 0.0f, 405.0f},
@@ -440,7 +460,6 @@ int main(int argc, char* argv[])
     {   4.0f, 0.0f, 405.0f},
     {   6.0f, 0.0f, 405.0f}
 };
-
 
     std::vector<glm::vec3> guardRail_positions;
 
@@ -650,14 +669,16 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(g_view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(g_projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
-        #define TRACK  0
-        #define CAR    1
-        #define WALL   2
-        #define ARCS   3
-        #define GUARD  4
-        #define WHEEL  5
-        #define WINDOW 6
-        #define PC     7
+        #define TRACK   0
+        #define CAR     1
+        #define WALL    2
+        #define ARCS    3
+        #define GUARD   4
+        #define WHEEL   5
+        #define WINDOW  6
+        #define PC      7
+        #define PEOPLE  8
+        #define GRANDMA 9
 
         // Desenhamos o plano do chão
         //model = Matrix_Translate(0.0f,-1.1f,0.0f);
@@ -690,6 +711,22 @@ int main(int argc, char* argv[])
             glUniform1i(g_object_id_uniform, GUARD);
             DrawVirtualObject("the_guardRail");
         }
+
+        model = Matrix_Translate(PeoplePositionX, PeoplePositionY, PeoplePositionZ);
+        model = model * Matrix_Rotate_Y(0.707 * PeoplePositionX);
+        model = model * Matrix_Scale(2.0f, 2.0f, 2.0f);
+        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, PEOPLE);
+        DrawVirtualObject("Object_casualMan_28_0");
+
+
+        model = Matrix_Translate(GrandmaPositionX, GrandmaPositionY, GrandmaPositionZ);
+        model = model * Matrix_Rotate_Y(-1.4 * GrandmaPositionX);
+        model = model * Matrix_Scale(1.0f, 1.0f, 1.0f);
+        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, GRANDMA);
+        DrawVirtualObject("Object_TexMap_0");
+
 
     //  ===============================================
     //  Lógica de Física (Implementação da Gravidade)
@@ -843,7 +880,7 @@ float radius_pc     = 1.0f;
 //float radius_pc     = glm::length(g_VirtualScene["the_car_pc"].bbox_max - g_VirtualScene["the_car_pc"].bbox_min) / 2.5f;
 
 if (CheckSphereCollision(center_player, radius_player, center_pc, radius_pc)) {
-    std::cout << "Colisão entre carros detectada (esfera vs esfera)!" << std::endl;
+    //std::cout << "Colisão entre carros detectada (esfera vs esfera)!" << std::endl;
 
     // Resposta simples: anula as velocidades
     g_CarSpeed = 0.0f;
@@ -1139,6 +1176,8 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage5"), 5);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage6"), 6);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage7"), 7);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage8"), 8);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage9"), 9);
     glUseProgram(0);
 }
 

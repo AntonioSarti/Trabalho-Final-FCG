@@ -31,6 +31,8 @@ uniform int object_id;
 #define WHEEL   5
 #define WINDOW  6
 #define PC      7
+#define PEOPLE  8
+#define GRANDMA 9
 
 // Constante
 #define M_PI 3.14159265358979323846
@@ -44,6 +46,8 @@ uniform sampler2D TextureImage4;
 uniform sampler2D TextureImage5;
 uniform sampler2D TextureImage6;
 uniform sampler2D TextureImage7;
+uniform sampler2D TextureImage8;
+uniform sampler2D TextureImage9;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -92,7 +96,7 @@ void main()
         U = texcoords.x;
         V = texcoords.y;
     }
-        else if ( object_id == 1 ) // CAR
+        if ( object_id == 1 ) // CAR
     {
         U = texcoords.x;
         V = texcoords.y;
@@ -127,7 +131,19 @@ void main()
         U = texcoords.x;
         V = texcoords.y;
     }
-        else if (object_id == 3) // ARCS como toro
+        if ( object_id == 8 )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+    }
+        if ( object_id == 9 )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+    }
+        if (object_id == 3) // ARCS como toro
     {
         vec3 pos = position_model.xyz;
 
@@ -164,16 +180,16 @@ void main()
         Ka = Kd * 0.5f;
         Ks = vec3(0.8f, 0.8f, 0.8f);
         Ns = 64.0f;
-    } else if (object_id == 2) { // CAR
+    } else if (object_id == 2) { 
         Kd = texture(TextureImage2, vec2(U,V)).rgb;
         Ka = Kd * 0.5f;
         Ks = vec3(0.8f, 0.8f, 0.8f);
         Ns = 64.0f;
     } else if (object_id == 7) { // PLR2
         Kd = texture(TextureImage7, vec2(U,V)).rgb;
-        Ka = vec3(0.0f, 0.0f, 0.0f);
-        Ks = vec3(0.0f, 0.0f, 0.0f);
-        Ns = 32.0f;
+        Ka = Kd * 0.5f;
+        Ks = vec3(0.8f, 0.8f, 0.8f);
+        Ns = 64.0f;
     } else if (object_id == 3) { // ARCS
         Kd = texture(TextureImage3, vec2(U,V)).rgb;
         Ka = Kd * 0.5f;
@@ -196,11 +212,21 @@ void main()
         Ns = 35.0f;
     } else if (object_id == 7) {
         Kd = texture(TextureImage7, vec2(U,V)).rgb;
+        Ka = vec3(0.05f, 0.05f, 0.05f);
+        Ks = vec3(0.8f, 0.8f, 0.8f);
+        Ns = 45.0f;
+    } else if (object_id == 8) { 
+        Kd = texture(TextureImage8, vec2(U,V)).rgb;
+        Ka = Kd * 0.5f;
+        Ks = vec3(0.1f, 0.1f, 0.1f);
+        Ns = 35.0f;
+    } else if (object_id == 9) { 
+        Kd = texture(TextureImage9, vec2(U,V)).rgb;
         Ka = Kd * 0.5f;
         Ks = vec3(0.1f, 0.1f, 0.1f);
         Ns = 35.0f;
     } else {
-        Kd = vec3(1.0f, 1.0f, 1.0f);
+        Kd = vec3(0.698039f, 0.698039f, 0.698039f);
         Ka = vec3(0.0f, 0.0f, 0.0f);
         Ks = vec3(0.0f, 0.0f, 0.0f);
         Ns = 1.0f;
