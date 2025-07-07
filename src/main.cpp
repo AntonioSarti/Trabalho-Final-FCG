@@ -283,7 +283,7 @@ bool g_DKeyPressed = false;
 
 // Parâmetros de movimento do carro
 float g_CarSpeed = 0.0f; // Velocidade atual do carro
-float g_CarMaxSpeed = 25.0f; // Velocidade máxima
+float g_CarMaxSpeed = 25.0f; // Velocidade máximas
 float g_CarAcceleration = 5.0f; // Aceleração
 float g_CarDeceleration = 5.0f; // Desaceleração (freio)
 float g_CarRotationSpeed = 1.0f; // Velocidade de rotação (guinada)
@@ -312,6 +312,9 @@ glm::vec3 BezierCubic(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, fl
 
 double g_GameStartTime = 0.0;
 bool g_RaceStarted = false;
+
+int g_DifficultyLevel=1;        // 0 = fácil, 1 = médio, 2 = difícil
+bool g_DifficultyChosen = false;  // True se o jogador já escolheu a dificuldade
 
 
 int main(int argc, char* argv[])
@@ -496,7 +499,9 @@ int main(int argc, char* argv[])
         float deltaTime = (float)(current_time - g_LastTime);
         g_LastTime = current_time;
 
-        float elapsed = (float)(current_time - g_GameStartTime);
+        //float elapsed = (float)(current_time - g_GameStartTime);
+        float elapsed = g_DifficultyChosen ? (float)(current_time - g_GameStartTime) : 0.0f;
+
 
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -534,7 +539,6 @@ int main(int argc, char* argv[])
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
         //glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
-
 
         glm::mat4 view;
 
@@ -579,10 +583,23 @@ int main(int argc, char* argv[])
             }
             else
             {
+                // glm::vec3 car_direction = glm::vec3(sin(g_CarYaw), 0.0f, cos(g_CarYaw));
+                // glm::vec3 eye_offset = glm::vec3(0.0f, 1.5f, 0.0f);
+                // glm::vec3 camera_position = glm::vec3(g_CarPos) + eye_offset;
+                // glm::vec3 camera_target = camera_position + car_direction;
+
+                // -------------------------------------------------------------------------
                 glm::vec3 car_direction = glm::vec3(sin(g_CarYaw), 0.0f, cos(g_CarYaw));
-                glm::vec3 eye_offset = glm::vec3(0.0f, 1.5f, 0.0f);
+                glm::vec3 eye_offset = glm::vec3(0.0f, 1.5f, 0.0f); // altura acima do capô
                 glm::vec3 camera_position = glm::vec3(g_CarPos) + eye_offset;
-                glm::vec3 camera_target = camera_position + car_direction;
+
+                // Direção levemente inclinada para trás
+                glm::vec3 reverse_direction = -car_direction;
+                glm::vec3 slight_offset = glm::vec3(0.0f, 0.2f, 0.0f); // um pouco para cima
+                glm::vec3 camera_target = camera_position + reverse_direction + slight_offset;
+
+                // ---------------------------------------------------------------------------
+
                 glm::vec4 camera_position_c = glm::vec4(camera_position, 1.0f);
                 glm::vec4 camera_lookat_l = glm::vec4(camera_target, 1.0f);
                 glm::vec4 view_vector = camera_lookat_l - camera_position_c;
@@ -762,9 +779,30 @@ int main(int argc, char* argv[])
     // ==================================================================
     // Lógica bem simples do Movimento do Carro do player 2 - IA (car_pc)
     // ==================================================================
+
     static float g_CarSpeed_pc = 0.0f;
-    const float g_CarMaxSpeed_pc = 30.0f; // velocidade máxima da IA
-    const float g_CarAcceleration_pc = 4.0f; // aceleração IA
+    float g_CarMaxSpeed_pc; // velocidade máxima da IA
+    float g_CarAcceleration_pc; // aceleração IA
+
+    switch (g_DifficultyLevel)
+    {
+        case 0: // Fácil
+            g_CarMaxSpeed_pc = 15.0f;
+            g_CarAcceleration_pc = 3.0f;
+            break;
+        case 1: // Médio
+            g_CarMaxSpeed_pc = 25.0f;
+            g_CarAcceleration_pc = 4.0f;
+            break;
+        case 2: // Difícil
+            g_CarMaxSpeed_pc = 26.0f;
+            g_CarAcceleration_pc = 4.0f;
+            break;
+        default: // Medio
+            g_CarMaxSpeed_pc = 25.0f;
+            g_CarAcceleration_pc = 4.0f;
+            break;
+    }
 
     if (g_CarPos_pc.z < 400.0f)
     {
@@ -817,13 +855,28 @@ int main(int argc, char* argv[])
         // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
 
-    if (!g_RaceStarted)
-    {
-        int countdown = 5 - (int)elapsed;
-        char countdown_text[32];
-        snprintf(countdown_text, sizeof(countdown_text), "Arrancada em: %d", countdown);
-        TextRendering_PrintString(window, countdown_text, -0.30f, 0.5f, 2.0f);
-    }
+        if (!g_RaceStarted)
+        {
+            if (!g_DifficultyChosen)
+            {
+                TextRendering_PrintString(window, "Escolha a dificuldade para iniciar:", -0.35f, 0.4f, 1.52f);
+                TextRendering_PrintString(window, "1 - Easy",    -0.35f, 0.3f, 1.2f);
+                TextRendering_PrintString(window, "2 - Medium",  -0.35f, 0.2f, 1.2f);
+                TextRendering_PrintString(window, "3 - Hard",    -0.35f, 0.1f, 1.2f);
+            }
+            else
+            {
+                int countdown = 5 - (int)elapsed;
+                char countdown_text[32];
+                snprintf(countdown_text, sizeof(countdown_text), "Arrancada em: %d", countdown);
+                TextRendering_PrintString(window, countdown_text, -0.30f, 0.5f, 2.0f);
+
+                const char* dificuldade_textos[] = {"Easy", "Medium", "Hard"};
+                char difftxt[64];
+                snprintf(difftxt, sizeof(difftxt), "Dificuldade: %s", dificuldade_textos[g_DifficultyLevel]);
+                TextRendering_PrintString(window, difftxt, -0.65f, 0.0f, 1.2f);
+            }
+        }
 
         // Mostra a velocidade em tempo real
         float speed_kmh = g_CarSpeed * 3.6f *3.f;
@@ -1550,9 +1603,34 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 // tecla do teclado. Veja http://www.glfw.org/docs/latest/input_guide.html#input_key
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 {
+    if (action == GLFW_PRESS)
+    {
+        if (!g_DifficultyChosen)
+        {
+            if (key == GLFW_KEY_1)
+            {
+                g_DifficultyLevel = 0;
+                g_DifficultyChosen = true;
+                g_GameStartTime = glfwGetTime();
+            }
+            else if (key == GLFW_KEY_2)
+            {
+                g_DifficultyLevel = 1;
+                g_DifficultyChosen = true;
+                g_GameStartTime = glfwGetTime();
+            }
+            else if (key == GLFW_KEY_3)
+            {
+                g_DifficultyLevel = 2;
+                g_DifficultyChosen = true;
+                g_GameStartTime = glfwGetTime();
+            }
+        }
+    }
+
     if (key == GLFW_KEY_F5 && action == GLFW_PRESS)
     {
-        g_CameraLookAt = !g_CameraLookAt;
+                g_CameraLookAt = !g_CameraLookAt;
     }
 
     if (key == GLFW_KEY_SPACE)
