@@ -210,7 +210,7 @@ float PeoplePositionZ = -330.0f;
 
 // Posição da Grandma no plano
 float GrandmaPositionX = 1.0f;
-float GrandmaPositionY = 1.2f;
+float GrandmaPositionY = 1.25f;
 float GrandmaPositionZ = 404.5f;
 
 // Posição dos guardrails no plano
@@ -361,7 +361,7 @@ int main(int argc, char* argv[])
     // Criamos uma janela do sistema operacional, com 800 colunas e 600 linhas
     // de pixels, e com título "INF01047 ...".
     GLFWwindow* window;
-    window = glfwCreateWindow(800, 600, "*** ARRANCADÃO 2025 - Desafio dos 400 metros ***", NULL, NULL);
+    window = glfwCreateWindow(800, 600, "-= Arrancadão 2025 - desafio dos 400 metros =-", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -482,10 +482,11 @@ int main(int argc, char* argv[])
     //float car_min_y = g_VirtualScene["the_car"].bbox_min.y;
     float carSize = g_VirtualScene["tc-car_surface.jpg"].bbox_max.y - g_VirtualScene["tc-car_surface.jpg"].bbox_min.y;
     float carSizepc = g_VirtualScene["tc-car_surface_pc.jpg"].bbox_max.y - g_VirtualScene["tc-car_surface_pc.jpg"].bbox_min.y;
+
     // TrackPositionY é a coordenada Y do plano. Se o plano estiver em y=0, então TrackPositionY = 0.0f.
     // A posição Y do carro deve ser TrackPositionY menos a coordenada Y mínima do modelo do carro,
     // para que a base do carro coincida com a altura do plano.
-    g_CarPos = { 1.0f, 0.0f + carSize, -328.6f, 0.0f };
+    g_CarPos = { 1.0f, 0.0f + carSize, -328.6f, 10.0f };
     g_CarPos_pc = { -1.0f, 0.0f + carSizepc, -328.6f, 0.0f };
 
     // Inicializa o tempo para o cálculo do deltaTime
@@ -525,7 +526,6 @@ int main(int argc, char* argv[])
 
         //float elapsed = (float)(current_time - g_GameStartTime);
         float elapsed = g_DifficultyChosen ? (float)(current_time - g_GameStartTime) : 0.0f;
-
 
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -718,7 +718,6 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, PEOPLE);
         DrawVirtualObject("Object_casualMan_28_0");
-
 
         model = Matrix_Translate(GrandmaPositionX, GrandmaPositionY, GrandmaPositionZ);
         model = model * Matrix_Rotate_Y(-1.4 * GrandmaPositionX);
@@ -917,7 +916,7 @@ float radius_pc     = 1.0f;
 
 if (ResolveSphereCollision(g_CarPos, radius_player, g_CarSpeed,
                            g_CarPos_pc, radius_pc, g_CarSpeed_pc)) {
-    std::cout << "Colisão entre carros detectada (esfera vs esfera)!" << std::endl;
+    //std::cout << "Colisão entre carros detectada (esfera vs esfera)!" << std::endl;
 }
 
 // ===============================================
@@ -995,7 +994,7 @@ if (!hitWall) {
 // ===============================================
 
         // Desenhamos o modelo do carro usando a posição e rotação atualizadas
-        model = Matrix_Translate(g_CarPos.x, g_CarPos.y, g_CarPos.z);
+        model = Matrix_Translate(g_CarPos.x, g_CarPos.y + 0.075f, g_CarPos.z);
         //model = model * Matrix_Scale(0.5f, 0.5f, 0.5f); // reduz o carro pela metade
         model = model * Matrix_Rotate_Y(g_CarYaw); // Aplica a rotação do carro
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));

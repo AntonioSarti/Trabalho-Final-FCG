@@ -20,6 +20,8 @@ uniform mat4 projection;
 #define WHEEL   5
 #define WINDOW  6
 #define PC      7
+#define PEOPLE  8
+#define GRANDMA 9
 
 uniform int object_id;
 
@@ -34,7 +36,6 @@ uniform sampler2D TextureImage6;
 uniform sampler2D TextureImage7;
 
 
-
 // Atributos de vértice que serão gerados como saída ("out") pelo Vertex Shader.
 // ** Estes serão interpolados pelo rasterizador! ** gerando, assim, valores
 // para cada fragmento, os quais serão recebidos como entrada pelo Fragment
@@ -44,7 +45,6 @@ out vec4 position_model;
 out vec4 normal;
 out vec2 texcoords;
 out vec3 vertex_color;
-
 
 void main()
 {
@@ -92,8 +92,8 @@ void main()
 
     vertex_color = vec3(0.0f, 0.0f, 0.0f);
 
-        // Objetos que utilizarão modelo de interpolação por vértices
-    if (object_id == CAR) {
+    // Objetos que utilizarão modelo de interpolação por vértices
+    if (object_id == 1) { // CAR
         // Normal do fragmento atual, interpolada pelo rasterizador a partir das
         // normais de cada vértice.
         vec4 n = normalize(normal);
@@ -120,5 +120,4 @@ void main()
 
         vertex_color = lambert_diffuse_term + ambient_term;
     }
-
 }

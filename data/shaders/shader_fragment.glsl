@@ -89,60 +89,15 @@ void main()
     vec3 Ks;  // Especular
     float Ns; // Brilho especular (shininess)
 
+    // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        if (object_id == 0 || object_id == 1 || object_id == 2 ||
+            object_id == 4 || object_id == 5 || object_id == 6 ||
+            object_id == 7 || object_id == 8 || object_id == 9)
+    {
+        U = texcoords.x;
+        V = texcoords.y;
+    }
 
-        if ( object_id == 0 ) // TRACK
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-    }
-        if ( object_id == 1 ) // CAR
-    {
-        U = texcoords.x;
-        V = texcoords.y;
-    }
-        if ( object_id == 2 ) // WALL
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-    }
-        if ( object_id == 4 )
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-    }
-        if ( object_id == 5 )
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-    }
-        if ( object_id == 6 )
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-    }
-        if ( object_id == 7 )
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-    }
-        if ( object_id == 8 )
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-    }
-        if ( object_id == 9 )
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-    }
         if (object_id == 3) // ARCS como toro
     {
         vec3 pos = position_model.xyz;
@@ -168,7 +123,6 @@ void main()
         float U = (theta + M_PI) / (2.0 * M_PI);
         float V = (phi + M_PI) / (2.0 * M_PI);
     }
-
 
     if (object_id == 0) { // TRACK
         Kd = texture(TextureImage0, vec2(U,V)).rgb;
@@ -232,13 +186,9 @@ void main()
         Ns = 1.0f;
     }
 
-        // Espectro da fonte de iluminação
-        vec3 I = vec3(0.98f, 1.00f, 0.92f);
-
-        // Espectro da luz ambiente
-        vec3 Ia = vec3(0.98f, 1.00f, 0.92f);
-
-        // Equação de Iluminação
+        // Fonte de iluminação, espectro da luz ambiente e equação da iluminação
+        vec3 I = vec3(0.96f, 1.00f, 0.91f);
+        vec3 Ia = vec3(0.96f, 1.00f, 0.91f);
         vec3 lambert_diffuse_term = Kd * I * max(0, dot(n, l));
         vec3 ambient_term = Ka * Ia;
         vec3 phong_specular_term  = Ks * I * pow(max(0, dot(n, h)), Ns);
@@ -263,4 +213,3 @@ void main()
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
         color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
 }
-
