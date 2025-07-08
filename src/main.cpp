@@ -744,32 +744,52 @@ int main(int argc, char* argv[])
         g_CarPos.y += g_CarVelocity.y * deltaTime;
 
         // Obtém a altura mínima do modelo dos carros para detecção de colisão com o plano
-        float car_min_y = g_VirtualScene["the_car"].bbox_min.y;
-        float car_pc_min_y = g_VirtualScene["the_car_pc"].bbox_min.y;
+       // float car_min_y = g_VirtualScene["the_car"].bbox_min.y;
+       // float car_pc_min_y = g_VirtualScene["the_car_pc"].bbox_min.y;
         // Calcula a altura da base do carro em relação ao seu ponto de origem
-        float car_base_offset = car_min_y;
+       // float car_base_offset = car_min_y;
 
         // Calcula a altura da base do carro do player 2 (pc) em relação ao seu ponto de origem
-        float car_pc_base_offset = car_pc_min_y;
+       // float car_pc_base_offset = car_pc_min_y;
 
         // Posição Y do chão/plano
-        float plane_y_position = TrackPositionY;
+       // float plane_y_position = TrackPositionY;
 
         // Detecção de colisão com o plano
         // Se a base do carro (g_CarPos.y + car_base_offset) estiver abaixo do plano,
         // ajusta a posição para que fique em cima do plano e zera a velocidade vertical.
-        if (g_CarPos.y + car_base_offset < plane_y_position)
-        {
+       // if (g_CarPos.y + car_base_offset < plane_y_position)
+       // {
 
-        g_CarPos.y = plane_y_position - car_base_offset;  // Subtrai o offset aqui
-        g_CarVelocity.y = 0.0f; // Para o carro ao atingir o chão
-        }
+       // g_CarPos.y = plane_y_position - car_base_offset;  // Subtrai o offset aqui
+       // g_CarVelocity.y = 0.0f; // Para o carro ao atingir o chão
+       // }
 
         // Garante que o carro esteja sempre no plano ou acima dele, eliminando o "flutuar"
-        g_CarPos.y = glm::max(g_CarPos.y, plane_y_position - car_base_offset);
+       // g_CarPos.y = glm::max(g_CarPos.y, plane_y_position - car_base_offset);
 
         // Garante que o carro 2 esteja sempre no plano ou acima dele, eliminando o "flutuar"
-        g_CarPos_pc.y = glm::max(g_CarPos.y, plane_y_position - car_pc_base_offset);
+       // g_CarPos_pc.y = glm::max(g_CarPos.y, plane_y_position - car_pc_base_offset);
+// ===============================================
+// Colisão com o plano
+// ===============================================
+// Obtem informações da cena
+glm::vec3 bbox_min_car = g_VirtualScene["the_car"].bbox_min;
+glm::vec3 bbox_max_car = g_VirtualScene["the_car"].bbox_max;
+
+glm::vec3 bbox_min_car_pc = g_VirtualScene["the_car_pc"].bbox_min;
+glm::vec3 bbox_max_car_pc = g_VirtualScene["the_car_pc"].bbox_max;
+
+glm::vec3 plane_bbox_min = g_VirtualScene["the_track"].bbox_min;
+glm::vec3 plane_bbox_max = g_VirtualScene["the_track"].bbox_max;
+glm::vec3 plane_position = glm::vec3(TrackPositionX, TrackPositionY, TrackPositionZ);
+glm::vec3 plane_scale = glm::vec3(1.0f);
+glm::vec3 plane_min = plane_position + plane_bbox_min * plane_scale;
+glm::vec3 plane_max = plane_position + plane_bbox_max * plane_scale;
+
+   ResolveCarGroundCollision(g_CarPos, bbox_min_car, plane_position.y);
+   ResolveCarGroundCollision(g_CarPos_pc, bbox_min_car_pc, plane_position.y);
+// ===============================================
 
     // ===============================================
     // Lógica de Movimento do Carro
@@ -872,27 +892,32 @@ int main(int argc, char* argv[])
 glm::vec3 center_player = glm::vec3(g_CarPos);
 glm::vec3 center_pc     = glm::vec3(g_CarPos_pc);
 
-// Raio estimado dos carros (ajuste conforme o modelo)
+// Raio estimado dos carros
 float radius_player = 1.0f;
 float radius_pc     = 1.0f;
 
 //float radius_player = glm::length(g_VirtualScene["the_car"].bbox_max - g_VirtualScene["the_car"].bbox_min) / 2.5f;
 //float radius_pc     = glm::length(g_VirtualScene["the_car_pc"].bbox_max - g_VirtualScene["the_car_pc"].bbox_min) / 2.5f;
 
-if (CheckSphereCollision(center_player, radius_player, center_pc, radius_pc)) {
+//if (CheckSphereCollision(center_player, radius_player, center_pc, radius_pc)) {
     //std::cout << "Colisão entre carros detectada (esfera vs esfera)!" << std::endl;
 
     // Resposta simples: anula as velocidades
-    g_CarSpeed = 0.0f;
-    g_CarSpeed_pc = 0.0f;
+   // g_CarSpeed = 0.0f;
+   // g_CarSpeed_pc = 0.0f;
 
     // Separa os carros suavemente para não ficarem sobrepostos
-    glm::vec3 direction = glm::normalize(center_player - center_pc);
-    float overlap = (radius_player + radius_pc) - glm::distance(center_player, center_pc);
+   // glm::vec3 direction = glm::normalize(center_player - center_pc);
+   // float overlap = (radius_player + radius_pc) - glm::distance(center_player, center_pc);
 
     // Aplica deslocamento de recuo proporcional
-    g_CarPos     += glm::vec4(direction * (overlap * 0.5f), 0.0f);
-    g_CarPos_pc  -= glm::vec4(direction * (overlap * 0.5f), 0.0f);
+   // g_CarPos     += glm::vec4(direction * (overlap * 0.5f), 0.0f);
+   // g_CarPos_pc  -= glm::vec4(direction * (overlap * 0.5f), 0.0f);
+//}
+
+if (ResolveSphereCollision(g_CarPos, radius_player, g_CarSpeed,
+                           g_CarPos_pc, radius_pc, g_CarSpeed_pc)) {
+    std::cout << "Colisão entre carros detectada (esfera vs esfera)!" << std::endl;
 }
 
 // ===============================================
@@ -902,8 +927,8 @@ if (CheckSphereCollision(center_player, radius_player, center_pc, radius_pc)) {
 // Colisão com paredes visíveis
 // ===============================================
 // Obtem informações da cena
-glm::vec3 bbox_min_car = g_VirtualScene["the_car"].bbox_min;
-glm::vec3 bbox_max_car = g_VirtualScene["the_car"].bbox_max;
+//glm::vec3 bbox_min_car = g_VirtualScene["the_car"].bbox_min;
+//glm::vec3 bbox_max_car = g_VirtualScene["the_car"].bbox_max;
 
 glm::vec3 direction = glm::vec3(sin(g_CarYaw), 0.0f, cos(g_CarYaw));
 glm::vec3 move = direction * g_CarSpeed * deltaTime;
@@ -944,11 +969,30 @@ if (!hitWall) {
 // ===============================================
 // Aplicação do movimento e tratamento de colisão
 // ===============================================
-//if (!hitWall) {
-//    g_CarPos = tentativeCarPos; // Movimento aceito
+if (!hitWall) {
+    g_CarPos = tentativeCarPos; // Movimento aceito
+  } 
+    else {
+    g_CarSpeed = 0.0f; // Movimento rejeitado, zera velocidade
+  }
+
+// ===============================================
+// Saída do Plano/Paredes invisíveis
+// ===============================================
+//BoundingBox finalBox = ComputeCarAABB(g_CarPos, bbox_min_car, bbox_max_car);
+
+//bool insidePlane =
+//    finalBox.min.x >= plane_min.x && finalBox.max.x <= plane_max.x &&
+//    finalBox.min.z >= plane_min.z && finalBox.max.z <= plane_max.z;
+
+//if (insidePlane) {
+//    ResolveCarGroundCollision(g_CarPos, bbox_min_car, plane_position.y);
 //} else {
-////    g_CarSpeed = 0.0f; // Movimento rejeitado, zera velocidade
+//    std::cout << "Carro saiu do plano. Vai cair!" << std::endl;
 //}
+// ===============================================
+// FIM DA LÓGICA DE COLISÃO
+// ===============================================
 
         // Desenhamos o modelo do carro usando a posição e rotação atualizadas
         model = Matrix_Translate(g_CarPos.x, g_CarPos.y, g_CarPos.z);
