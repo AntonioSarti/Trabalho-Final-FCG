@@ -50,6 +50,10 @@ bool CheckSphereCollision(
     const glm::vec3& centerB, float radiusB
 );
 
+bool ResolveSphereCollision(
+    glm::vec4& posA, float radiusA, float& speedA,
+    glm::vec4& posB, float radiusB, float& speedB
+);
 
 
 #endif // COLLISIONS_H

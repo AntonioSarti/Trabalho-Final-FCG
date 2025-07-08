@@ -104,7 +104,9 @@ void ResolveCarGroundCollision(
     if (car_base_y < plane_y_position) {
         float offset = car_bbox_min.y;
         carPos.y = plane_y_position - offset;
-        // std::cout << "Colisão com o plano detectada. Corrigindo posição." << std::endl;
+        //carPos.y += plane_y_position - car_base_y;
+
+      //  std::cout << "Colisão com o plano detectada. Corrigindo posição." << std::endl;
     }
 }
 
@@ -115,4 +117,37 @@ bool CheckSphereCollision(
     float distanceSquared = glm::dot(centerA - centerB, centerA - centerB);
     float radiusSum = radiusA + radiusB;
     return distanceSquared <= radiusSum * radiusSum;
+}
+
+bool ResolveSphereCollision(
+    glm::vec4& posA, float radiusA, float& speedA,
+    glm::vec4& posB, float radiusB, float& speedB
+) {
+    glm::vec3 centerA = glm::vec3(posA);
+    glm::vec3 centerB = glm::vec3(posB);
+
+    float distance = glm::distance(centerA, centerB);
+    float radiusSum = radiusA + radiusB;
+
+    if (distance <= radiusSum) {
+        // Zera velocidades
+        speedA = 0.0f;
+        speedB = 0.0f;
+
+        // Evita divisão por zero
+        if (distance == 0.0f)
+            return true;
+
+        // Calcula vetor de separação
+        glm::vec3 direction = glm::normalize(centerA - centerB);
+        float overlap = radiusSum - distance;
+
+        // Aplica deslocamento proporcional para afastar os objetos
+        posA += glm::vec4(direction * (overlap * 0.5f), 0.0f);
+        posB -= glm::vec4(direction * (overlap * 0.5f), 0.0f);
+
+        return true;
+    }
+
+    return false;
 }
