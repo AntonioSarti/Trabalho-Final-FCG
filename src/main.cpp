@@ -50,6 +50,7 @@
 #include "matrices.h"
 #include "collisions.h"
 
+
 const float TRACK_MIN_X = -100.0f;
 const float TRACK_MAX_X =  100.0f;
 const float TRACK_MIN_Z = -5.0f;
@@ -178,6 +179,7 @@ struct SceneObject
     glm::vec3    bbox_min; // Axis-Aligned Bounding Box do objeto
     glm::vec3    bbox_max;
 };
+
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
@@ -695,6 +697,7 @@ int main(int argc, char* argv[])
             glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
             glUniform1i(g_object_id_uniform, WALL);
             DrawVirtualObject("the_wall");
+
         }
 
         model = Matrix_Translate(ArcsPositionX, ArcsPositionY, ArcsPositionZ);
@@ -710,6 +713,7 @@ int main(int argc, char* argv[])
             glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
             glUniform1i(g_object_id_uniform, GUARD);
             DrawVirtualObject("the_guardRail");
+
         }
 
         model = Matrix_Translate(PeoplePositionX, PeoplePositionY, PeoplePositionZ);
@@ -754,13 +758,13 @@ int main(int argc, char* argv[])
        // float car_min_y = g_VirtualScene["the_car"].bbox_min.y;
        // float car_pc_min_y = g_VirtualScene["the_car_pc"].bbox_min.y;
         // Calcula a altura da base do carro em relação ao seu ponto de origem
-       // float car_base_offset = car_min_y;
+      //  float car_base_offset = car_min_y;
 
         // Calcula a altura da base do carro do player 2 (pc) em relação ao seu ponto de origem
        // float car_pc_base_offset = car_pc_min_y;
 
         // Posição Y do chão/plano
-       // float plane_y_position = TrackPositionY;
+      //  float plane_y_position = TrackPositionY;
 
         // Detecção de colisão com o plano
         // Se a base do carro (g_CarPos.y + car_base_offset) estiver abaixo do plano,
@@ -773,10 +777,10 @@ int main(int argc, char* argv[])
        // }
 
         // Garante que o carro esteja sempre no plano ou acima dele, eliminando o "flutuar"
-       // g_CarPos.y = glm::max(g_CarPos.y, plane_y_position - car_base_offset);
+      //  g_CarPos.y = glm::max(g_CarPos.y, plane_y_position - car_base_offset);
 
         // Garante que o carro 2 esteja sempre no plano ou acima dele, eliminando o "flutuar"
-       // g_CarPos_pc.y = glm::max(g_CarPos.y, plane_y_position - car_pc_base_offset);
+      //  g_CarPos_pc.y = glm::max(g_CarPos.y, plane_y_position - car_pc_base_offset);
 // ===============================================
 // Colisão com o plano
 // ===============================================
@@ -864,7 +868,7 @@ glm::vec3 plane_max = plane_position + plane_bbox_max * plane_scale;
             g_CarAcceleration_pc = 4.0f;
             break;
         case 2: // Difícil
-            g_CarMaxSpeed_pc = 26.0f;
+            g_CarMaxSpeed_pc = 30.0f;
             g_CarAcceleration_pc = 4.0f;
             break;
         default: // Medio
@@ -978,11 +982,10 @@ if (!hitWall) {
 // ===============================================
 if (!hitWall) {
     g_CarPos = tentativeCarPos; // Movimento aceito
-  } 
-    else {
-    g_CarSpeed = 0.0f; // Movimento rejeitado, zera velocidade
-  }
-
+} else {
+    g_CarPos = tentativeCarPos; // Aplicar posição corrigida com empurrão
+    g_CarSpeed = 0.0f;
+}
 // ===============================================
 // Saída do Plano/Paredes invisíveis
 // ===============================================
@@ -1007,7 +1010,7 @@ if (!hitWall) {
         model = model * Matrix_Rotate_Y(g_CarYaw); // Aplica a rotação do carro
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, CAR);
-        DrawVirtualObject("the_car");
+        DrawVirtualObject("the_car");       
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, WHEEL);
         DrawVirtualObject("ruedas");
