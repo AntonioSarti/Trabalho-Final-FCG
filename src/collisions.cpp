@@ -132,7 +132,6 @@ bool ResolveSphereCollision(
     return false;
 }
 
-<<<<<<< HEAD
 // Ponto para AABB - Para limitar o carro na fronteira com plano do chão.
 void CheckCarbyBounds(glm::vec4& carPos, float mapScale)
 {
@@ -144,5 +143,3 @@ void CheckCarbyBounds(glm::vec4& carPos, float mapScale)
     if (carPos.z < mapa_Min) carPos.z = mapa_Min;
     if (carPos.z > mapa_Max) carPos.z = mapa_Max;
 }
-=======
->>>>>>> cb059e0870b48fb919f40d9a02c0752ebbb784e2
