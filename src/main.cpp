@@ -742,7 +742,15 @@ int main(int argc, char* argv[])
         // Atualiza a posição do carro com base na velocidade
         g_CarPos.y += g_CarVelocity.y * deltaTime;
 
-        // Obtém a altura mínima do modelo dos carros para detecção de colisão com o plano
+
+    //  ====================================================================================================
+    //  Teste de Colisão (Ponto para AABB)
+    //
+        float plane_size = g_VirtualScene["the_track"].bbox_max.x - g_VirtualScene["the_track"].bbox_min.x;
+        CheckCarbyBounds(g_CarPos, plane_size);
+     //  ====================================================================================================
+
+       // Obtém a altura mínima do modelo dos carros para detecção de colisão com o plano
        // float car_min_y = g_VirtualScene["the_car"].bbox_min.y;
        // float car_pc_min_y = g_VirtualScene["the_car_pc"].bbox_min.y;
         // Calcula a altura da base do carro em relação ao seu ponto de origem

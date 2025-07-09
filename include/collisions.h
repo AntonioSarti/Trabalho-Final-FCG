@@ -55,5 +55,7 @@ bool ResolveSphereCollision(
     glm::vec4& posB, float radiusB, float& speedB
 );
 
+// Verifica se o carro está no limite da área do chão
+void CheckCarbyBounds(glm::vec4& CarPos, float mapScale);
 
 #endif // COLLISIONS_H
