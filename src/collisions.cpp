@@ -1,4 +1,3 @@
-
 #include "collisions.h"
 #include <glm/glm.hpp>
 #include <iostream>
@@ -132,16 +131,3 @@ bool ResolveSphereCollision(
 
     return false;
 }
-
-// Ponto para AABB - Para limitar o carro na fronteira com plano do chão.
-void CheckCarbyBounds(glm::vec4& carPos, float mapScale)
-{
-    float mapa_Min = -(mapScale/2);
-    float mapa_Max =   mapScale/2;
-
-    if (carPos.x < mapa_Min) carPos.x = mapa_Min;
-    if (carPos.x > mapa_Max) carPos.x = mapa_Max;
-    if (carPos.z < mapa_Min) carPos.z = mapa_Min;
-    if (carPos.z > mapa_Max) carPos.z = mapa_Max;
-}
-
