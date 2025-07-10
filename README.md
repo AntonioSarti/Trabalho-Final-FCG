@@ -4,21 +4,22 @@ O desenvolvimento visou consolidar, por meio da prática, os conceitos teóricos
 O projeto exigia diversos critérios técnicos que deveriam ser atingidos,com base nos assuntos abordados da disciplina. Eles estão listados a seguir junto com a descrição de onde foram aplicados:
 - **Malhas poligonais complexas**: Se encontram em objetos como os carros e as pessoas;
 - **Transformações geométricas controladas pelo usuário**: A movimentação do carro e troca de câmeras são feitas pelo usuário através do teclado;
-- **Câmera Livre e Look-At**: A Câmera Livre foi aplicada como uma visão do retrovisor do carro do jogador. A Câmera Look-At é a câmera padrão de terceira pessoa do jogo, além tem disso também desenvolvemos uma Câmera Lateral que se movimenta com uma Curva Bézier cúbica; 
+- **Câmera Livre e Look-At**: A Câmera Livre foi aplicada como uma visão do retrovisor do carro do jogador. A Câmera Look-At é a câmera padrão de terceira pessoa do jogo, além tem disso também desenvolvemos uma Câmera Lateral que se movimenta com uma curva Bézier cúbica; 
 - **Instâncias de objetos**: Cones e paredes foram instanciados;
 - **Três tipos de testes de intersecção**: Aplicamos quatro  tipos de intersecção, sendo elas:
- 1. AABB vs AABB: entre o carro do jogador e as barreiras e cones; 
- 2. Esfera vs Esfera: entre os carros; 
- 3. AABB vs Plano: entre os carros e o chão;
- 4. AABB vs Ponto: entre o carro e as bordas do mapa;
+ 1. **AABB vs AABB**: entre o carro do jogador e as barreiras e cones; 
+ 2. **Esfera vs Esfera**: entre os carros; 
+ 3. **AABB vs Plano**: entre os carros e o chão;
+ 4. **AABB vs Ponto**: entre o carro e as bordas do mapa;
 - **Animações baseadas no tempo**: A movimentação dos carros e das câmeras são baseadas no tempo;
 - **Movimentação com curva Bézier cúbica**: A movimentação da câmera lateral utiliza curva Bézier cúbica;
 - **Modelos de Iluminação Difusa** e **Blinn-Phong e Modelos de Interpolação de Phong e Gouraud**: os objetos do jogo utilizam os modelos de forma combinada alternadamente, mais precisamente:
-1. Pista: Interpolação Gouraud e Iluminação Lambert;
-2. Carro: Interpolação Phong e Iluminação Blinn-Phong;
-3. Barreira: Interpolação Gouraud Iluminação Blinn-Phong;
-4. Arcos:  Interpolação Phong e Iluminação Lambert;
+1. **Pista**: Interpolação Gouraud e Iluminação Lambert;
+2. **Carro**: Interpolação Phong e Iluminação Blinn-Phong;
+3. **Barreira**: Interpolação Gouraud Iluminação Blinn-Phong;
+4. **Arcos**:  Interpolação Phong e Iluminação Lambert;
 - **Mapeamento de Texturas em todos os objetos**: Todos os objetos possuem mapeamento de textura;
+
 Além dos requisitos básicos, foram desenvolvidos para o projeto uma lógica de física básica com gravidade, atrito, velocidade e aceleração. Uma IA simplificada com a lógica de movimento do adversário,um sistema de dificuldade baseado na aceleração e velocidade do adversário além da exibição na tela de uma lógica de contagem regressiva, um velocímetro simplificado, a escolha do nível de dificuldade e textos ao finalizar a corrida (“you win”/”you lose”). 
 
 ## Como compilar o projeto com o CMake (Windows)
@@ -40,15 +41,15 @@ Além dos requisitos básicos, foram desenvolvidos para o projeto uma lógica de
 - Leandro Reis Boniatti
 # Manual do Jogo
 Ao abrir o jogo, você deve escolher entre um dos níveis de dificuldade:
-- Nível Fácil (Easy): Tecla ‘1’
-- Nível Médio (Medium): Tecla ‘2’
-- Nível Difícil (Hard): Tecla ‘3’
-A movimentação do carro acontece com ‘W’,’A’,’S’,’D’.
-- ‘W’: acelera o carro;
-- ‘A’: movimenta para a esquerda;
-- ‘S’: movimenta para a direita;
-- ‘D’: desacelera move o carro para trás;
-As Câmeras Livre e Look-At são alternadas com a tecla F5, a Câmera Lateral é acessível com a tecla ESPAÇO;
+- **Nível Fácil** (Easy): Tecla ‘1’
+- **Nível Médio** (Medium): Tecla ‘2’
+- **Nível Difícil** (Hard): Tecla ‘3’
+A movimentação do carro acontece com **‘W’,’A’,’S’,’D’**.
+- **‘W’**: acelera o carro;
+- **‘A’**: movimenta para a esquerda;
+- **‘S’**: movimenta para a direita;
+- **‘D’**: desacelera move o carro para trás;
+As Câmeras Livre e Look-At são alternadas com a tecla **F5**, a Câmera Lateral é acessível com a tecla **ESPAÇO**;
 
 # Divisão de Tarefas
 Inicialmente, a dupla cogitou a divisão de tarefas do requisitos técnicos por número de requisitos, divididos igualitariamente, no entanto, o desenvolvimento das colisões foi tão mais difícil do que o imaginado que a divisão acabou ficando majoritariamente entre desenvolvimento das colisões para um membro da dupla (Leandro)  e “o resto” (Antonio), apesar de que ambos os membros contribuíram um pouco na parte do outro também. 
@@ -58,3 +59,6 @@ Em relação a outras tarefas relacionadas ao envio do projeto, Leandro ficou re
 # Utilização de Inteligência Artificial
 Um dos membros da dupla (Antonio) optou por praticamente não utilizar ferramentas de inteligência artificial após testes com o Gemini, por achar que as implementações tinham um nível muito baixo.
 Para o desenvolvimento das colisões, o ChatGPT foi uma ferramenta importante. Leandro utilizou-o inicialmente para acelerar o entendimento do código, que já havia sido iniciado por Antonio. Também utilizou-o para debugs (economiza muito tempo colocar os erros de compilação nele, pois ele vai indicar rapidamente o que está errado, ajuda muito em casos clássicos como faltar um ‘{‘ ou ‘}’ em algum lugar do código)  e ideias de implementação (por exemplo, a sugestão de fazer uma função que desenha as bounding boxes para entender os erros que estavam acontecendo), o que se provou ser muito útil. No geral, ele não conseguiu resolver problemas complexos (como desenvolver uma função que faz o teste de colisão AABB vs AABB perfeitamente) mas a utilização da ferramenta foi satisfatória. 
+
+# Imagens de demonstração
+
