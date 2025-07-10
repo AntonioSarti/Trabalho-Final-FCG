@@ -67,5 +67,11 @@ Para o desenvolvimento das colisões, o ChatGPT foi uma ferramenta importante. L
 
 # Imagens de demonstração
 
+<img width="617" height="468" alt="Image" src="https://github.com/user-attachments/assets/8740319d-64a9-498c-849f-181b057ec5f8" />
+Tela inicial do jogo
+
+<img width="608" height="448" alt="Image" src="https://github.com/user-attachments/assets/798eb940-233a-428f-b78a-57d8363e8724" />
+Visão da câmera lateral
+
 
 
