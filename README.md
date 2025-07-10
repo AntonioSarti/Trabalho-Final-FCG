@@ -3,7 +3,7 @@ O Trabalho Final da disciplina consistiu no desenvolvimento de um jogo tridimens
 
 O desenvolvimento visou consolidar, por meio da prática, os conceitos teóricos abordados ao longo da disciplina, como o pipeline gráfico , modelagem geométrica 3D, transformações geométricas, modelos de iluminação, mapeamento de texturas, animação e detecção de colisão.
 O projeto exigia diversos critérios técnicos que deveriam ser atingidos,com base nos assuntos abordados da disciplina. Eles estão listados a seguir junto com a descrição de onde foram aplicados:
-- **Malhas poligonais complexas**: Se encontram em objetos como os carros e as pessoas;
+- **Malhas poligonais complexas**: Se encontram em objetos como os carros e as pessoas, múltiplos modelos ".obj" complexos;
 - **Transformações geométricas controladas pelo usuário**: A movimentação do carro e troca de câmeras são feitas pelo usuário através do teclado;
 - **Câmera Livre e Look-At**: A Câmera Livre foi aplicada como uma visão do retrovisor do carro do jogador. A Câmera Look-At é a câmera padrão de terceira pessoa do jogo, além tem disso também desenvolvemos uma Câmera Lateral que se movimenta com uma curva Bézier cúbica; 
 - **Instâncias de objetos**: Cones e paredes foram instanciados;
@@ -12,14 +12,14 @@ O projeto exigia diversos critérios técnicos que deveriam ser atingidos,com ba
  2. **Esfera vs Esfera**: entre os carros; 
  3. **AABB vs Plano**: entre os carros e o chão;
  4. **AABB vs Ponto**: entre o carro e as bordas do mapa;
-- **Animações baseadas no tempo**: A movimentação dos carros e das câmeras são baseadas no tempo;
+- **Animações baseadas no tempo**: A movimentação dos carros e das câmeras são baseadas no tempo,utilizando deltaTime;
 - **Movimentação com curva Bézier cúbica**: A movimentação da câmera lateral utiliza curva Bézier cúbica;
 - **Modelos de Iluminação Difusa** e **Blinn-Phong e Modelos de Interpolação de Phong e Gouraud**: os objetos do jogo utilizam os modelos de forma combinada alternadamente, mais precisamente:
 1. **Pista**: Interpolação Gouraud e Iluminação Lambert;
 2. **Carro**: Interpolação Phong e Iluminação Blinn-Phong;
 3. **Barreira**: Interpolação Gouraud Iluminação Blinn-Phong;
 4. **Arcos**:  Interpolação Phong e Iluminação Lambert;
-- **Mapeamento de Texturas em todos os objetos**: Todos os objetos possuem mapeamento de textura;
+- **Mapeamento de Texturas em todos os objetos**: Todos os objetos possuem mapeamento de textura via glUniform1i e TextureImage#;
 
 Além dos requisitos básicos, foram desenvolvidos para o projeto uma lógica de física básica com gravidade, atrito, velocidade e aceleração. Uma IA simplificada com a lógica de movimento do adversário,um sistema de dificuldade baseado na aceleração e velocidade do adversário além da exibição na tela de uma lógica de contagem regressiva, um velocímetro simplificado, a escolha do nível de dificuldade e textos ao finalizar a corrida (“you win”/”you lose”).
 
