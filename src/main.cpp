@@ -869,7 +869,7 @@ glm::vec3 plane_max = plane_position + plane_bbox_max * plane_scale;
             break;
         case 2: // Difícil
             g_CarMaxSpeed_pc = 50.0f;
-            g_CarAcceleration_pc = 10.0f;
+            g_CarAcceleration_pc = 9.5f;
             break;
         default: // Medio
             g_CarMaxSpeed_pc = 25.0f;
